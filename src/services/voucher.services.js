@@ -1,25 +1,21 @@
-const Vouchers = require('../models/voucher.model')
+const voucherModel = require('../models/voucher.model')
+const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
 
 class VouchersService {
-    static addVoucher = async ({ name, conditionText, conditionValue, percent, quantity, date }) => {
+    static addVoucher = async ({ name, startDay, endDay, type, value }) => {
         try {
             const isExist = await Vouchers.findOne({ name }).lean();
             if (isExist) {
-                return {
-                    success: false,
-                    message: "Already exist"
-                }
+                return new BadRequestError('Already exist')
             }
 
             const newVoucher = new Vouchers({
-                name, conditionText, conditionValue, percent, quantity, date
+                name, startDay, endDay, type, value
             })
+            
             return await newVoucher.save()
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
+            throw new InternalServerError(error.message)
         }
     }
 

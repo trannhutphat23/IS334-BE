@@ -1,0 +1,21 @@
+@url_api=http://localhost:8081/v1/api/
+
+## User Sign up
+POST {{url_api}}/signup
+Content-Type: application/json
+
+{
+    "name": "phat",
+    "email": "trannhutphatv@gmail.com",
+    "address": "HCM",
+    "phone": "0393371111",
+    "password": "123456"
+}
+
+# POST {{url_api}}/login
+# Content-Type: application/json
+
+# {
+#     "email": "trannhutphattv@gmail.com",
+#     "password": "password123"
+# }

@@ -44,7 +44,7 @@ class VouchersService {
         try {
             const voucher = await voucherModel.findById(id)
             if (!voucher) {
-                return new ConflictRequestError(`Voucher don't exist`)
+                return new ConflictRequestError(`Voucher doesn't exist`)
             }
 
             return voucher
@@ -56,17 +56,27 @@ class VouchersService {
     // [PUT]/v1/api/user/vouchers/:id
     static updateVoucher = async ({id} , { name, startDay, endDay, type, value }) => {
         try {
+            [startDay, endDay] = [new Date(startDay), new Date(endDay)]
+            if (startDay > endDay) {
+                return new BadRequestError('Start date must be before end date')
+            }
+
             const voucher = await voucherModel.findByIdAndUpdate(id, { name, startDay, endDay, type, value }, {
                 new: true,
                 runValidators: true
             })
 
             if (!voucher) {
-                return new ConflictRequestError(`Voucher don't exist`)
+                return new ConflictRequestError(`Voucher doesn't exist`)
             }
 
             return voucher
         } catch (error) {
+            // duplicate key error
+            if (error.code === 11000) {
+                return new ConflictRequestError('Voucher name already exists')
+            }
+
             throw new InternalServerError(error.message)
         }
     }
@@ -76,7 +86,7 @@ class VouchersService {
         try {
             const voucher = await voucherModel.findByIdAndDelete(id)
             if (!voucher) {
-                return new ConflictRequestError(`Voucher don't exist`)
+                return new ConflictRequestError(`Voucher doesn't exist`)
             }
 
             return {

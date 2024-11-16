@@ -1,3 +1,4 @@
+const ProductModel = require('../models/product.model')
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -14,21 +15,21 @@ const cartSchema = new Schema(
             {
                 product: {
                     type: Schema.Types.ObjectId,
-                    ref: 'Items',
+                    ref: 'Product',
                 },
                 size: {
-                    type: Number,
+                    type: String,
                     required: true,
                 },
                 quantity: {
                     type: Number,
                     required: true,
                 },
-                price:{
+                price: {
                     type: Number,
                     required: true
                 },
-                discount:{
+                discount: {
                     type: Number,
                     required: true
                 },
@@ -36,7 +37,7 @@ const cartSchema = new Schema(
         ],
         total: {
             type: Number,
-            required: true,
+            // required: true,
         }
     },
     {
@@ -44,5 +45,14 @@ const cartSchema = new Schema(
         collection: COLLECTION_NAME,
     }
 );
+
+cartSchema.pre('save', async function (next) {
+    this.total = this.items.reduce((total, item) => {
+
+        return total + (item.price - item.price*item.discount/100) * item.quantity;
+    }, 0);
+
+    next();
+});
 
 module.exports = mongoose.model(DOCUMENT_NAME, cartSchema);

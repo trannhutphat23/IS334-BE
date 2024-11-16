@@ -31,11 +31,11 @@ router.post('/logout', AccessController.logout)
 router.post('/contact', AccessController.contact)
 
 //product
-router.get('/product', ProductController.getProduct)
-router.get('/product/:id', ProductController.getProductID)
-router.post('/product', upload.single('image'), ProductController.addProduct)
-router.put('/product/:id', upload.single('image'), ProductController.updateProduct)
-router.delete('/product/:id', ProductController.deleteProduct)
+router.get('/products', ProductController.getProduct)
+router.get('/products/:id', ProductController.getProductID)
+router.post('/products', upload.single('image'), ProductController.addProduct)
+router.put('/products/:id', upload.single('image'), ProductController.updateProduct)
+router.delete('/products/:id', ProductController.deleteProduct)
 
 //farms
 router.post('/farms', upload.single('image'), FarmController.addFarm)
@@ -66,9 +66,10 @@ router.post('/orders/payment', OrdersController.paymentOrder)
 router.put('/changeStatus/:id', OrdersController.changeStatus)
 
 //cart
-router.post('/carts', CartController.addCart)
-router.get('/carts/:id', CartController.getCart)
-router.delete('/carts/:itemId', CartController.deleteCart)
+router.post('/carts', CartController.addItemCart)
+router.delete('/carts', CartController.deleteItemCart)
+router.get('/carts', CartController.getCart)
+router.get('/carts/:userId', CartController.getCartByUserId)
 
 //admin
 router.get('/users', AccessController.getUsers)

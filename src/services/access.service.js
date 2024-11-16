@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
-const getData = require('../utils/formatRes');
+const {getData} = require('../utils/formatRes');
 const AuthService = require('./auth.service');
 const userModel = require('../models/user.model');
 const ordersModel = require('../models/order.model');
@@ -122,22 +122,17 @@ class AccessService {
     // [POST]/v1/api/login
     static login = async({email, password}, res) => {
         try {
-            const existUser = await userModel.findOne({email})
+            const existUser = await userModel.findOne({email}).lean()
             if (!existUser) {
-                return {
-                    success: false,
-                    message: "User not registered"
-                }
+                return new BadRequestError("User not registered")
             }
+            
             const match = await bcrypt.compare(password, existUser.password);
             if (!match) {   
-                return {
-                    success: false,
-                    message: 'Wrong Password'
-                }
+                return new BadRequestError("Wrong Password")
             }
 
-            const payload = {id: existUser.id, email};
+            const payload = {id: existUser._id, email};
 
             const accessToken = AuthService.createAccessToken(payload);
 
@@ -157,10 +152,7 @@ class AccessService {
                 accessToken: accessToken,
             }
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
+            throw new InternalServerError(error.message)
         }
     }
 
@@ -415,28 +407,12 @@ class AccessService {
         }
     }
 
+    // [POST]/v1/api/user/users
     static getUsers = async () => {
         try {
-            const customers = await CustomerModel.find({})
-            const orders = await ordersModel.find({}).populate('user')
-            let customerTotals = customers.map((customer) => {
-                return {
-                    customer,
-                    totalIntoMoney: 0,
-                }
-            })
-            let customerLookup = {};
-            customerTotals.forEach(customer => {
-                customerLookup[customer.customer.email] = customer;
-            });
-
-            orders.forEach(order => {
-                let customerEmail = order.customer.email;
-                if (customerLookup.hasOwnProperty(customerEmail)) {
-                    customerLookup[customerEmail].totalIntoMoney += order.intoMoney;
-                }
-            });
-            return customerTotals;
+            const users = await userModel.find({})
+            
+            return users.map((user) => getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: user}))
         } catch (error) {
             return {
                 success: false,

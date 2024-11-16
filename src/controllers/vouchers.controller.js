@@ -1,4 +1,4 @@
-const VouchersService = require('../services/voucher.services')
+const VouchersService = require('../services/voucher.service')
 
 class VouchersController {
     addVoucher = async (req, res, next) => {

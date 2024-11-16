@@ -3,6 +3,7 @@ const UserModel = require('../models/user.model')
 const ProductModel = require('../models/product.model')
 const userModel = require('../models/user.model')
 const getData = require('../utils/formatRes')
+const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
 
 class CartService {
     static getAllCart = async () => {
@@ -29,10 +30,7 @@ class CartService {
             }).populate('items.product')
 
             if (!cart) {
-                return {
-                    success: false,
-                    message: "wrong cart"
-                }
+                return new BadRequestError('Wrong cart', 400)
             }
 
             return cart
@@ -44,48 +42,21 @@ class CartService {
         }
     }
 
-    // static addCart = async ({ userId, items }) => {
-    //     try {
-    //         const newCart = new cartModel({
-    //             userId,
-    //             items,
-    //         })
-
-    //         const savedCart = await newCart.save()
-
-    //         return getData({ fields: ['_id', 'userId', 'items', 'totalPrice'], object: savedCart })
-    //     } catch (error) {
-    //         return {
-    //             success: false,
-    //             message: error.message
-    //         }
-    //     }
-    // }
-
     static addItemCart = async ({ userId, productId, size, quantity }) => {
         try {
             const user = await UserModel.findById(userId)
             const product = await ProductModel.findById(productId)
 
             if (!user) {
-                return {
-                    success: false,
-                    message: "wrong user"
-                }
+                return new BadRequestError('Wrong user', 400)
             }
 
             if (!product) {
-                return {
-                    success: false,
-                    message: "wrong product"
-                }
+                return new BadRequestError('Wrong product', 400)
             }
 
             if (!product.type.some(p => p.size == size)) {
-                return {
-                    success: false,
-                    message: "wrong size"
-                }
+                return new BadRequestError('Wrong size', 400)
             }
 
             let cart = await CartModel.findOne({ userId: userId })
@@ -149,24 +120,15 @@ class CartService {
             const product = await ProductModel.findById(productId)
 
             if (!user) {
-                return {
-                    success: false,
-                    message: "wrong user"
-                }
+                return new BadRequestError('Wrong user', 400)
             }
 
             if (!product) {
-                return {
-                    success: false,
-                    message: "wrong product"
-                }
+                return new BadRequestError('Wrong product', 400)
             }
 
             if (!product.type.some(p => p.size == size)) {
-                return {
-                    success: false,
-                    message: "wrong size"
-                }
+                return new BadRequestError('Wrong size', 400)
             }
 
             const cart = await CartModel.findOne({ userId: userId })
@@ -186,10 +148,7 @@ class CartService {
                     return cart
                 }
                 else {
-                    return {
-                        success: false,
-                        message: "product not found in cart"
-                    }
+                    return new BadRequestError('Product not found in cart', 400)
                 }
             }
             else {
@@ -205,10 +164,7 @@ class CartService {
                     return cart
                 }
                 else {
-                    return {
-                        success: false,
-                        message: "product not found in cart"
-                    }
+                    return new BadRequestError('Product not found in cart', 400)
                 }
             }
 
@@ -220,29 +176,6 @@ class CartService {
             }
         }
     }
-
-    // static deleteCart = async ({ id }) => {
-    //     try {
-    //         const cart = await CartModel.findByIdAndDelete(id)
-
-    //         if (!cart) {
-    //             return {
-    //                 success: false,
-    //                 message: "wrong cart"
-    //             }
-    //         }
-
-    //         return {
-    //             success: true,
-    //             message: "delete successfully"
-    //         }
-    //     } catch (error) {
-    //         return {
-    //             success: false,
-    //             message: error.message
-    //         }
-    //     }
-    // }
 }
 
 module.exports = CartService;

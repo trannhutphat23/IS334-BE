@@ -47,7 +47,6 @@ router.delete('/farms/:id', FarmController.deleteFarm)
 //vouchers
 router.post('/vouchers', VouchersController.addVoucher)
 router.get('/vouchers', VouchersController.getVoucher)
-router.get('/vouchers/:name', VouchersController.getVoucherByName)
 router.get('/vouchers/:id', VouchersController.getVoucherID)
 router.put('/vouchers/:id', VouchersController.updateVoucher)
 router.delete('/vouchers/:id', VouchersController.deleteVoucher)

@@ -1,55 +1,18 @@
-const cartModel = require('../models/cart.model')
+const CartModel = require('../models/cart.model')
+const UserModel = require('../models/user.model')
+const ProductModel = require('../models/product.model')
 const userModel = require('../models/user.model')
-const productModel = require('../models/product.model')
-const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
+const getData = require('../utils/formatRes')
 
 class CartService {
-    // [POST]/v1/api/users/carts
-    static addCart = async ({userId, productId, size, amount}) => {
+    static getAllCart = async () => {
         try {
-            const existUser = await userModel.findById(userId)
-            if (!existUser) {
-                return new ConflictRequestError(`User doesn't exist`)
-            }
+            const carts = await CartModel.find({}).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
 
-            const existProduct = await productModel.findById(productId)
-            if (!existProduct) {
-                return new ConflictRequestError(`Product doesn't exist`)
-            }
-
-            const existCart = await cartModel.findOne({user: existUser._id})
-            // if (!existCart) {
-                
-            // }
-            // if (!existCart){
-            //     const tempObj = {
-            //         item: itemId,
-            //         amount: amount,
-            //         price: amount*(existItem.price - existItem.price*existItem.tag)
-            //     }
-            //     const newCart = new CartModel({
-            //         customer: existUser._id,
-            //         items: [tempObj]
-            //     })
-
-            //     const savedCart = newCart.save()
-            //     return (await savedCart).populate('items.item')
-            // }
-            // // check exist item in cart with customer id
-            // let checkNew = true;
-            // for (const ele of existCart.items){
-            //     if (ele.item == itemId){
-            //         checkNew = false
-            //         ele.amount += amount
-            //         ele.price += amount*(existItem.price - existItem.price*existItem.tag)
-            //         await CartModel.findOneAndUpdate({customer: existUser._id}, {$set: {items: existCart.items}})
-            //         return existCart.populate('items.item')
-            //     }
-            // }
-            // if (checkNew){
-            //     const updatedCart = await CartModel.findOneAndUpdate({customer: existUser._id}, {$push: {items: {item: itemId, amount: amount, price: amount*(existItem.price - existItem.price*existItem.tag)}}}, {new: true})
-            //     return updatedCart.populate('items.item')
-            // }
+            return carts
         } catch (error) {
             return {
                 success: false,
@@ -58,19 +21,120 @@ class CartService {
         }
     }
 
-    static getCart = async ({id}) => {
+    static getCartByUserId = async ({ userId }) => {
         try {
-            const existCart = await CartModel.findOne({customer: id})
-            if (!existCart) {
+            const cart = await CartModel.findOne({ userId: userId }).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
+    // static addCart = async ({ userId, items }) => {
+    //     try {
+    //         const newCart = new cartModel({
+    //             userId,
+    //             items,
+    //         })
+
+    //         const savedCart = await newCart.save()
+
+    //         return getData({ fields: ['_id', 'userId', 'items', 'totalPrice'], object: savedCart })
+    //     } catch (error) {
+    //         return {
+    //             success: false,
+    //             message: error.message
+    //         }
+    //     }
+    // }
+
+    static addItemCart = async ({ userId, productId, size, quantity }) => {
+        try {
+            const user = await UserModel.findById(userId)
+            const product = await ProductModel.findById(productId)
+
+            if (!user) {
+                return {
+                    success: false,
+                    message: "wrong user"
+                }
+            }
+
+            if (!product) {
+                return {
+                    success: false,
+                    message: "wrong product"
+                }
+            }
+
+            if (!product.type.some(p => p.size == size)) {
+                return {
+                    success: false,
+                    message: "wrong size"
+                }
+            }
+
+            let cart = await CartModel.findOne({ userId: userId })
+
+            if (!cart) {
                 const newCart = new CartModel({
-                    customer: id,
-                    items: []
+                    userId,
                 })
-                const savedNewCart = newCart.save()
-                return (await savedNewCart).populate('items.item')
+
+                const savedCart = await newCart.save()
             }
 
-            return existCart.populate('items.item')
+            cart = await CartModel.findOne({ userId: userId })
+
+            if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                cart.items.forEach(item => {
+                    if (item.product == productId && item.size == size) {
+                        item.quantity += quantity
+                        product.type.forEach(p => {
+                            if (p.size == size) {
+                                item.price = p.price
+                                item.discount = product.discount
+                            }
+                        })
+                    }
+                })
+
+                await cart.save()
+
+                return cart
+            }
+            else {
+                product.type.forEach(p => {
+                    if (p.size == size) {
+                        cart.items.push({
+                            "product": productId,
+                            quantity,
+                            size,
+                            "price": p.price,
+                            "discount": product.discount
+                        })
+                    }
+                })
+
+                await cart.save()
+
+                return cart
+            }
+
         } catch (error) {
             return {
                 success: false,
@@ -79,42 +143,76 @@ class CartService {
         }
     }
 
-    static deleteCart = async ({customerId, itemId}) => {
+    static deleteItemCart = async ({ userId, productId, size, quantity }) => {
         try {
-            const existUser = await CustomerModel.findById(customerId)
-            if (!existUser) {
+            const user = await userModel.findById(userId)
+            const product = await ProductModel.findById(productId)
+
+            if (!user) {
                 return {
                     success: false,
-                    message: "Customer don't exist"
+                    message: "wrong user"
                 }
             }
 
-            const existItemInCart = await CartModel.findOne({customer: customerId, 'items._id': itemId})
-            if (!existItemInCart){
+            if (!product) {
                 return {
                     success: false,
-                    message: "Item don't exist in cart"
+                    message: "wrong product"
                 }
             }
-            let isDeleted = false;
-            const items = existItemInCart.items
-            for (const ele of items){
-                if (itemId === ele._id.toString()){
-                    isDeleted = true;
-                    const existItem = await ItemsModels.findById(ele.item)
-                    const remainQuantity = existItem.quantity + ele.amount
-                    await ItemsModels.findOneAndUpdate({_id: ele.item}, {$set: {quantity: remainQuantity}})
 
-                    const updatedCart = await CartModel.findOneAndUpdate({customer: existUser._id}, {$pull: {items: {_id: itemId}}}, {new: true})
-                    return updatedCart.populate('items.item')
-                }
-            }
-            if (isDeleted === false) {
+            if (!product.type.some(p => p.size == size)) {
                 return {
                     success: false,
-                    message: "Item don't exist in cart"
+                    message: "wrong size"
                 }
             }
+
+            const cart = await CartModel.findOne({ userId: userId })
+
+            if (quantity) {
+                if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                    cart.items.forEach(item => {
+                        if (item.product == productId && item.size == size) {
+                            if (item.quantity > quantity) {
+                                item.quantity -= quantity
+                            }
+                        }
+                    })
+
+                    await cart.save()
+
+                    return cart
+                }
+                else {
+                    return {
+                        success: false,
+                        message: "product not found in cart"
+                    }
+                }
+            }
+            else {
+                if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                    cart.items.forEach((item, index) => {
+                        if (item.product == productId && item.size == size) {
+                            cart.items.splice(index, 1)
+                        }
+                    })
+
+                    await cart.save()
+
+                    return cart
+                }
+                else {
+                    return {
+                        success: false,
+                        message: "product not found in cart"
+                    }
+                }
+            }
+
+
         } catch (error) {
             return {
                 success: false,
@@ -122,6 +220,29 @@ class CartService {
             }
         }
     }
+
+    // static deleteCart = async ({ id }) => {
+    //     try {
+    //         const cart = await CartModel.findByIdAndDelete(id)
+
+    //         if (!cart) {
+    //             return {
+    //                 success: false,
+    //                 message: "wrong cart"
+    //             }
+    //         }
+
+    //         return {
+    //             success: true,
+    //             message: "delete successfully"
+    //         }
+    //     } catch (error) {
+    //         return {
+    //             success: false,
+    //             message: error.message
+    //         }
+    //     }
+    // }
 }
 
 module.exports = CartService;

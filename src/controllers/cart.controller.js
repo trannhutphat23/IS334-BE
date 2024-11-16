@@ -1,9 +1,17 @@
 const CartService = require('../services/cart.service')
 
 class CartController {
-    addCart = async (req, res, next) => {
+    addItemCart = async (req, res, next) => {
         try {
-            return res.status(201).json(await CartService.addCart(req.body))
+            return res.status(201).json(await CartService.addItemCart(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    deleteItemCart = async (req, res, next) => {
+        try {
+            return res.status(201).json(await CartService.deleteItemCart(req.body))
         } catch (error) {
             next(error)
         }
@@ -11,19 +19,21 @@ class CartController {
 
     getCart = async (req, res, next) => {
         try {
-            return res.status(201).json(await CartService.getCart(req.params))
+            return res.status(201).json(await CartService.getAllCart())
         } catch (error) {
             next(error)
         }
     }
 
-    deleteCart = async (req, res, next) => {
+    getCartByUserId = async (req, res, next) => {
         try {
-            return res.status(201).json(await CartService.deleteCart(req.query))
+            return res.status(201).json(await CartService.getCartByUserId(req.params))
         } catch (error) {
             next(error)
         }
     }
+
+    
 }
 
 module.exports = new CartController()

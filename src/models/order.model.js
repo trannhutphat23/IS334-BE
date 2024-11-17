@@ -6,11 +6,34 @@ const COLLECTION_NAME = 'Orders'
 
 const orderSchema = new Schema(
     {
-        cartId: {
+        user:{
             type: Schema.Types.ObjectId,
-            ref: 'Cart',
-            required: true
+            ref: 'User',
         },
+        items: [
+            {
+                product: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'Product',
+                },
+                size: {
+                    type: String,
+                    required: true,
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                },
+                price: {
+                    type: Number,
+                    required: true
+                },
+                discount: {
+                    type: Number,
+                    required: true
+                },
+            }
+        ],
         // tien truoc, tinh % sau
         voucher: [
             {
@@ -34,7 +57,7 @@ const orderSchema = new Schema(
         deliveryStatus: {
             type: String,
             required: true,
-            enum: ['pending', 'confirmed','systemCancel','customerCancel','doing', 'shipping', 'success','fail'],
+            enum: ['pending', 'confirmed', 'systemCancel', 'customerCancel', 'doing', 'shipping', 'success', 'fail'],
         },
     },
     {

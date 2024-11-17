@@ -21,6 +21,29 @@ class CartService {
         }
     }
 
+    static getCartById = async ({ id }) => {
+        try {
+            const cart = await CartModel.findById(id).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
     static getCartByUserId = async ({ userId }) => {
         try {
             const cart = await CartModel.findOne({ userId: userId }).populate({
@@ -44,34 +67,23 @@ class CartService {
         }
     }
 
-    // static addCart = async ({ userId, items }) => {
-    //     try {
-    //         const newCart = new cartModel({
-    //             userId,
-    //             items,
-    //         })
-
-    //         const savedCart = await newCart.save()
-
-    //         return getData({ fields: ['_id', 'userId', 'items', 'totalPrice'], object: savedCart })
-    //     } catch (error) {
-    //         return {
-    //             success: false,
-    //             message: error.message
-    //         }
-    //     }
-    // }
-
     static addItemCart = async ({ userId, productId, size, quantity }) => {
         try {
-            const user = await UserModel.findById(userId)
             const product = await ProductModel.findById(productId)
+            
+            if(userId){
 
-            if (!user) {
-                return {
-                    success: false,
-                    message: "wrong user"
+                const user = await UserModel.findById(userId)
+                
+                if (!user) {
+                    return {
+                        success: false,
+                        message: "wrong user"
+                    }
                 }
+            }
+            else{
+                userId = ""
             }
 
             if (!product) {
@@ -88,14 +100,16 @@ class CartService {
                 }
             }
 
-            let cart = await CartModel.findOne({ userId: userId })
-
-            if (!cart) {
-                const newCart = new CartModel({
-                    userId,
-                })
-
-                const savedCart = await newCart.save()
+            if(userId){
+                let cart = await CartModel.findOne({ userId: userId })
+                
+                if (!cart) {
+                    const newCart = new CartModel({
+                        userId,
+                    })
+                    
+                    const savedCart = await newCart.save()
+                }
             }
 
             cart = await CartModel.findOne({ userId: userId })
@@ -220,29 +234,6 @@ class CartService {
             }
         }
     }
-
-    // static deleteCart = async ({ id }) => {
-    //     try {
-    //         const cart = await CartModel.findByIdAndDelete(id)
-
-    //         if (!cart) {
-    //             return {
-    //                 success: false,
-    //                 message: "wrong cart"
-    //             }
-    //         }
-
-    //         return {
-    //             success: true,
-    //             message: "delete successfully"
-    //         }
-    //     } catch (error) {
-    //         return {
-    //             success: false,
-    //             message: error.message
-    //         }
-    //     }
-    // }
 }
 
 module.exports = CartService;

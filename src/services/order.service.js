@@ -7,7 +7,7 @@ const getData = require('../utils/formatRes')
 const _ = require('lodash');
 class OrdersServices {
     
-    static addOrder = async ({ deliveryFee, items, customer, userId, voucher, method, from }) => {
+    static addOrder = async ({ items, customer, userId, voucher, method, from }) => {
         // method is bank and cast
         try {
             // check exist voucher
@@ -220,9 +220,8 @@ class OrdersServices {
         }
     }
 
-    static paymentOrder = async ({amount, orderInfo, deliveryFee, items, voucher, customer, userId, method, from}) => {
+    static paymentOrder = async ({amount, orderInfo, items, voucher, userId, method, from}) => {
         try {
-            console.log("hahahahaha", items)
             // test momo:
             // NGUYEN VAN A
             // 9704 0000 0000 0018

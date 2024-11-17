@@ -49,6 +49,13 @@ class VouchersController {
         }
     }
 
+    confirmVoucher = async (req, res, next) => {
+        try {
+            return res.status(201).json(await VouchersService.confirmVoucher(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new VouchersController()

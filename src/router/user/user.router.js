@@ -7,10 +7,9 @@ multer({
     limits: { fieldSize: 25 * 1024 * 1024 }
 })
 
-const FarmController = require('../../controllers/farms.controller')
 const ProductController = require('../../controllers/product.controller')
-const VouchersController = require('../../controllers/vouchers.controller')
-const OrdersController = require('../../controllers/orders.controller')
+const VouchersController = require('../../controllers/voucher.controller')
+const OrdersController = require('../../controllers/order.controller')
 const CartController = require('../../controllers/cart.controller')
 const AccessController = require('../../controllers/access.controller')
 const AuthController = require('../../controllers/auth.controller')
@@ -37,13 +36,6 @@ router.post('/products', upload.single('image'), ProductController.addProduct)
 router.put('/products/:id', upload.single('image'), ProductController.updateProduct)
 router.delete('/products/:id', ProductController.deleteProduct)
 
-//farms
-router.post('/farms', upload.single('image'), FarmController.addFarm)
-router.get('/farms', FarmController.getFarm)
-router.get('/farms/:id', FarmController.getFarmID)
-router.put('/farms/:id', FarmController.updateFarm)
-router.delete('/farms/:id', FarmController.deleteFarm)
-
 //vouchers
 router.post('/vouchers', VouchersController.addVoucher)
 router.get('/vouchers', VouchersController.getVoucher)
@@ -51,6 +43,7 @@ router.get('/vouchers/:name', VouchersController.getVoucherByName)
 router.get('/vouchers/:id', VouchersController.getVoucherID)
 router.put('/vouchers/:id', VouchersController.updateVoucher)
 router.delete('/vouchers/:id', VouchersController.deleteVoucher)
+router.post('/vouchers/confirmVoucher', VouchersController.confirmVoucher)
 
 //orders
 router.post('/orders', OrdersController.addOrder)
@@ -69,7 +62,8 @@ router.put('/changeStatus/:id', OrdersController.changeStatus)
 router.post('/carts', CartController.addItemCart)
 router.delete('/carts', CartController.deleteItemCart)
 router.get('/carts', CartController.getCart)
-router.get('/carts/:userId', CartController.getCartByUserId)
+router.get('/carts/getCartByUserId/:userId', CartController.getCartByUserId)
+router.get('/carts/getCartById/:id', CartController.getCartById)
 
 //admin
 router.get('/users', AccessController.getUsers)

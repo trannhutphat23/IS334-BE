@@ -1,83 +1,170 @@
-const Vouchers = require('../models/voucher.model')
+const voucherModel = require('../models/voucher.model');
+const userModel = require('../models/user.model');
+const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
 
 class VouchersService {
-    static addVoucher = async ({ name, conditionText, conditionValue, percent, quantity, date }) => {
+    // [POST]/v1/api/user/vouchers
+    static addVoucher = async ({ name, startDay, endDay, type, value }) => {
         try {
-            const isExist = await Vouchers.findOne({ name }).lean();
+            const isExist = await voucherModel.findOne({ name }).lean();
             if (isExist) {
-                return {
-                    success: false,
-                    message: "Already exist"
-                }
+                return new ConflictRequestError('Already exist')
             }
 
-            const newVoucher = new Vouchers({
-                name, conditionText, conditionValue, percent, quantity, date
+            [startDay, endDay] = [new Date(startDay), new Date(endDay)]
+            if (startDay > endDay) {
+                return new BadRequestError('Start date must be before end date')
+            }
+
+            const newVoucher = new voucherModel({
+                name, startDay, endDay, type, value, "customerUsed": []
             })
+
             return await newVoucher.save()
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
+            // Validation error "type"
+            if (error.name === 'ValidationError') {
+                return new BadRequestError('Invalid input for type')
             }
+
+            throw new InternalServerError(error.message)
         }
     }
 
+    // [GET]/v1/api/user/vouchers
     static getVoucher = async () => {
         try {
-            return await Vouchers.find()
+            return await voucherModel.find().populate({
+                path: "customerUsed",
+                select: '_id name email address phone'
+            })
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
+            throw new InternalServerError(error.message)
         }
     }
 
+    // [GET]/v1/api/user/vouchers/:id
     static getVoucherID = async ({ id }) => {
         try {
-            return await Vouchers.findById(id)
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
+            const voucher = await voucherModel.findById(id).populate({
+                path: "customerUsed",
+                select: '_id name email address phone'
+            })
+            if (!voucher) {
+                return new ConflictRequestError(`Voucher doesn't exist`)
             }
+
+            return voucher
+        } catch (error) {
+            throw new InternalServerError(error.message)
         }
     }
 
-    static getVoucherByName = async ({name}) => {
+    // [PUT]/v1/api/user/vouchers/:id
+    static updateVoucher = async ({ id }, { name, startDay, endDay, type, value }) => {
         try {
-            const existVoucher = await Vouchers.findOne({name: name})
-            if (!existVoucher) {
+            [startDay, endDay] = [new Date(startDay), new Date(endDay)]
+            if (startDay > endDay) {
+                return new BadRequestError('Start date must be before end date')
+            }
+
+            const voucher = await voucherModel.findByIdAndUpdate(id, { name, startDay, endDay, type, value }, {
+                new: true,
+                runValidators: true
+            })
+
+            if (!voucher) {
+                return new ConflictRequestError(`Voucher doesn't exist`)
+            }
+
+            return voucher
+        } catch (error) {
+            // duplicate key error
+            if (error.code === 11000) {
+                return new ConflictRequestError('Voucher name already exists')
+            }
+
+            throw new InternalServerError(error.message)
+        }
+    }
+
+    // [DEL]/v1/api/user/vouchers/:id
+    static deleteVoucher = async ({ id }) => {
+        try {
+            const voucher = await voucherModel.findByIdAndDelete(id)
+            if (!voucher) {
+                return new ConflictRequestError(`Voucher doesn't exist`)
+            }
+
+            return {
+                success: true,
+                message: 'Voucher deleted successfully'
+            }
+        } catch (error) {
+            // duplicate key error
+            if (error.code === 11000) {
+                return new ConflictRequestError('Voucher name already exists')
+            }
+
+            throw new InternalServerError(error.message)
+        }
+    }
+
+    static confirmVoucher = async ({ name, userId }) => {
+        try {
+            const user = await userModel.findById(userId)
+
+            if (!user) {
                 return {
                     success: false,
-                    message: "Voucher don't exist"
+                    message: "wrong user"
                 }
             }
 
-            return existVoucher
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
-        }
-    }
+            const voucher = await voucherModel.findOne({ name })
 
-    static updateVoucher = async ({ id }, { name, conditionText, conditionValue, percent, quantity, date }) => {
-        try {
-            return await Vouchers.findByIdAndUpdate(id, { name, conditionText, conditionValue, percent, quantity, date })
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
-        }
-    }
+            if (voucher) {
+                const currentTime = new Date().getTime()
 
-    static deleteVoucher = async ({ id }) => {
-        try {
-            return await Vouchers.findByIdAndDelete(id)
+                if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
+                    if (voucher.customerUsed.some(user => user == userId)) {
+                        return {
+                            success: false,
+                            message: "voucher can only be used once"
+                        }
+                    }
+                    else {
+
+                        voucher.customerUsed.push(userId)
+
+                        await voucher.save()
+
+                        return {
+                            success: true,
+                            message: "used successfully",
+                            voucher: {
+                                type: voucher.type,
+                                value: voucher.value
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (voucher.startDay.getTime() > currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher cannot be used yet"
+                        }
+                    }
+
+                    if (voucher.endDay.getTime() < currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher expires"
+                        }
+                    }
+                }
+            }
         } catch (error) {
             return {
                 success: false,

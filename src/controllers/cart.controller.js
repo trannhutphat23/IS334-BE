@@ -1,14 +1,6 @@
 const CartService = require('../services/cart.service')
 
 class CartController {
-    addCart = async (req, res, next) => {
-        try {
-            return res.status(201).json(await CartService.addCart(req.body))
-        } catch (error) {
-            next(error)
-        }
-    }
-    
     addItemCart = async (req, res, next) => {
         try {
             return res.status(201).json(await CartService.addItemCart(req.body))
@@ -20,22 +12,6 @@ class CartController {
     deleteItemCart = async (req, res, next) => {
         try {
             return res.status(201).json(await CartService.deleteItemCart(req.body))
-        } catch (error) {
-            next(error)
-        }
-    }
-
-    addItemCartNoLogin = async (req, res, next) => {
-        try {
-            return res.status(201).json(await CartService.addItemCartNoLogin(req.body))
-        } catch (error) {
-            next(error)
-        }
-    }
-
-    deleteItemCartNoLogin = async (req, res, next) => {
-        try {
-            return res.status(201).json(await CartService.deleteItemCartNoLogin(req.body))
         } catch (error) {
             next(error)
         }

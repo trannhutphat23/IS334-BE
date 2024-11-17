@@ -6,7 +6,7 @@ const COLLECTION_NAME = 'Orders'
 
 const orderSchema = new Schema(
     {
-        user:{
+        user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
         },
@@ -34,6 +34,7 @@ const orderSchema = new Schema(
                 },
             }
         ],
+
         // tien truoc, tinh % sau
         voucher: [
             {
@@ -57,7 +58,7 @@ const orderSchema = new Schema(
         deliveryStatus: {
             type: String,
             required: true,
-            enum: ['pending', 'confirmed', 'systemCancel', 'customerCancel', 'doing', 'shipping', 'success', 'fail'],
+            enum: ['pending', 'confirmed','systemCancel','customerCancel','doing', 'shipping', 'success','fail'],
         },
     },
     {

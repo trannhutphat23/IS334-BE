@@ -59,11 +59,8 @@ router.post('/orders/payment', OrdersController.paymentOrder)
 router.put('/changeStatus/:id', OrdersController.changeStatus)
 
 //cart
-router.post('/carts/addNewCart', CartController.addCart)
-router.post('/carts/addCart', CartController.addItemCart)
-router.delete('/carts/deleteCart', CartController.deleteItemCart)
-router.post('/carts/addCartNoLogin', CartController.addItemCartNoLogin)
-router.delete('/carts/deleteCartNoLogin', CartController.deleteItemCartNoLogin)
+router.post('/carts', CartController.addItemCart)
+router.delete('/carts', CartController.deleteItemCart)
 router.get('/carts', CartController.getCart)
 router.get('/carts/getCartByUserId/:userId', CartController.getCartByUserId)
 router.get('/carts/getCartById/:id', CartController.getCartById)

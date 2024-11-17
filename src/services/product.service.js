@@ -4,7 +4,7 @@ const deleteImage = require('../utils/deleteImage.utils');
 const productModel = require('../models/product.model');
 
 class ProductService {
-    static addProduct = async (file, { name, type, description, category, discount, }) => {
+    static addProduct = async (file, { name, type, description, category, discount }) => {
         try {
             const product = await ProductModel.findOne({ name }).lean();
             if (product) {
@@ -70,7 +70,7 @@ class ProductService {
         }
     }
 
-    static updateProduct = async (id, file, { type, description, category, discount, }) => {
+    static updateProduct = async (id, file, { type, description, category, discount,isStock }) => {
         try {
             const product = await ProductModel.findById(id)
 
@@ -103,6 +103,9 @@ class ProductService {
 
             if (discount)
                 product.discount = discount
+
+            if (isStock)
+                product.isStock = isStock
 
             const savedProduct = await product.save()
 

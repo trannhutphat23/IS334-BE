@@ -3,7 +3,6 @@ const UserModel = require('../models/user.model')
 const ProductModel = require('../models/product.model')
 const userModel = require('../models/user.model')
 const getData = require('../utils/formatRes')
-const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
 
 class CartService {
     static getAllCart = async () => {
@@ -22,6 +21,29 @@ class CartService {
         }
     }
 
+    static getCartById = async ({ id }) => {
+        try {
+            const cart = await CartModel.findById(id).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
     static getCartByUserId = async ({ userId }) => {
         try {
             const cart = await CartModel.findOne({ userId: userId }).populate({
@@ -30,7 +52,10 @@ class CartService {
             }).populate('items.product')
 
             if (!cart) {
-                return new BadRequestError('Wrong cart', 400)
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
             }
 
             return cart
@@ -44,29 +69,47 @@ class CartService {
 
     static addItemCart = async ({ userId, productId, size, quantity }) => {
         try {
-            const user = await UserModel.findById(userId)
             const product = await ProductModel.findById(productId)
+            
+            if(userId){
 
-            if (!user) {
-                return new BadRequestError('Wrong user', 400)
+                const user = await UserModel.findById(userId)
+                
+                if (!user) {
+                    return {
+                        success: false,
+                        message: "wrong user"
+                    }
+                }
+            }
+            else{
+                userId = ""
             }
 
             if (!product) {
-                return new BadRequestError('Wrong product', 400)
+                return {
+                    success: false,
+                    message: "wrong product"
+                }
             }
 
             if (!product.type.some(p => p.size == size)) {
-                return new BadRequestError('Wrong size', 400)
+                return {
+                    success: false,
+                    message: "wrong size"
+                }
             }
 
-            let cart = await CartModel.findOne({ userId: userId })
-
-            if (!cart) {
-                const newCart = new CartModel({
-                    userId,
-                })
-
-                const savedCart = await newCart.save()
+            if(userId){
+                let cart = await CartModel.findOne({ userId: userId })
+                
+                if (!cart) {
+                    const newCart = new CartModel({
+                        userId,
+                    })
+                    
+                    const savedCart = await newCart.save()
+                }
             }
 
             cart = await CartModel.findOne({ userId: userId })
@@ -120,15 +163,24 @@ class CartService {
             const product = await ProductModel.findById(productId)
 
             if (!user) {
-                return new BadRequestError('Wrong user', 400)
+                return {
+                    success: false,
+                    message: "wrong user"
+                }
             }
 
             if (!product) {
-                return new BadRequestError('Wrong product', 400)
+                return {
+                    success: false,
+                    message: "wrong product"
+                }
             }
 
             if (!product.type.some(p => p.size == size)) {
-                return new BadRequestError('Wrong size', 400)
+                return {
+                    success: false,
+                    message: "wrong size"
+                }
             }
 
             const cart = await CartModel.findOne({ userId: userId })
@@ -148,7 +200,10 @@ class CartService {
                     return cart
                 }
                 else {
-                    return new BadRequestError('Product not found in cart', 400)
+                    return {
+                        success: false,
+                        message: "product not found in cart"
+                    }
                 }
             }
             else {
@@ -164,7 +219,10 @@ class CartService {
                     return cart
                 }
                 else {
-                    return new BadRequestError('Product not found in cart', 400)
+                    return {
+                        success: false,
+                        message: "product not found in cart"
+                    }
                 }
             }
 

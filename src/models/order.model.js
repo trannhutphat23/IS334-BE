@@ -9,12 +9,15 @@ const orderSchema = new Schema(
         cartId: {
             type: Schema.Types.ObjectId,
             ref: 'Cart',
+            required: true
         },
         // tien truoc, tinh % sau
-        voucher: {
-            type: Schema.Types.ObjectId,
-            ref: 'Voucher',
-        },
+        voucher: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Voucher',
+            }
+        ],
         total: {
             type: Number,
             required: true,
@@ -31,6 +34,7 @@ const orderSchema = new Schema(
         deliveryStatus: {
             type: String,
             required: true,
+            enum: ['pending', 'confirmed','systemCancel','customerCancel','doing', 'shipping', 'success','fail'],
         },
     },
     {

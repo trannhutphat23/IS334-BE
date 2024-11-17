@@ -1,4 +1,5 @@
-const voucherModel = require('../models/voucher.model')
+const voucherModel = require('../models/voucher.model');
+const userModel = require('../models/user.model');
 const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
 
 class VouchersService {
@@ -16,9 +17,9 @@ class VouchersService {
             }
 
             const newVoucher = new voucherModel({
-                name, startDay, endDay, type, value
+                name, startDay, endDay, type, value, "customerUsed": []
             })
-            
+
             return await newVoucher.save()
         } catch (error) {
             // Validation error "type"
@@ -33,7 +34,10 @@ class VouchersService {
     // [GET]/v1/api/user/vouchers
     static getVoucher = async () => {
         try {
-            return await voucherModel.find()
+            return await voucherModel.find().populate({
+                path: "customerUsed",
+                select: '_id name email address phone'
+            })
         } catch (error) {
             throw new InternalServerError(error.message)
         }
@@ -42,7 +46,10 @@ class VouchersService {
     // [GET]/v1/api/user/vouchers/:id
     static getVoucherID = async ({ id }) => {
         try {
-            const voucher = await voucherModel.findById(id)
+            const voucher = await voucherModel.findById(id).populate({
+                path: "customerUsed",
+                select: '_id name email address phone'
+            })
             if (!voucher) {
                 return new ConflictRequestError(`Voucher doesn't exist`)
             }
@@ -54,7 +61,7 @@ class VouchersService {
     }
 
     // [PUT]/v1/api/user/vouchers/:id
-    static updateVoucher = async ({id} , { name, startDay, endDay, type, value }) => {
+    static updateVoucher = async ({ id }, { name, startDay, endDay, type, value }) => {
         try {
             [startDay, endDay] = [new Date(startDay), new Date(endDay)]
             if (startDay > endDay) {
@@ -100,6 +107,69 @@ class VouchersService {
             }
 
             throw new InternalServerError(error.message)
+        }
+    }
+
+    static confirmVoucher = async ({ name, userId }) => {
+        try {
+            const user = await userModel.findById(userId)
+
+            if (!user) {
+                return {
+                    success: false,
+                    message: "wrong user"
+                }
+            }
+
+            const voucher = await voucherModel.findOne({ name })
+
+            if (voucher) {
+                const currentTime = new Date().getTime()
+
+                if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
+                    if (voucher.customerUsed.some(user => user == userId)) {
+                        return {
+                            success: false,
+                            message: "voucher can only be used once"
+                        }
+                    }
+                    else {
+
+                        voucher.customerUsed.push(userId)
+
+                        await voucher.save()
+
+                        return {
+                            success: true,
+                            message: "used successfully",
+                            voucher: {
+                                type: voucher.type,
+                                value: voucher.value
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (voucher.startDay.getTime() > currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher cannot be used yet"
+                        }
+                    }
+
+                    if (voucher.endDay.getTime() < currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher expires"
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
         }
     }
 

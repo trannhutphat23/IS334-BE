@@ -4,7 +4,6 @@ const deleteImage = require('../utils/deleteImage.utils');
 const productModel = require('../models/product.model');
 
 class ProductService {
-    // [POST]/v1/api/user/product
     static addProduct = async (file, { name, type, description, category, discount, }) => {
         try {
             const product = await ProductModel.findOne({ name }).lean();
@@ -38,7 +37,6 @@ class ProductService {
         }
     }
 
-    // [GET]/v1/api/user/product
     static getProduct = async () => {
         try {
             const products = await ProductModel.find({})
@@ -52,7 +50,6 @@ class ProductService {
         }
     }
 
-    // [GET]/v1/api/user/product/:id
     static getProductID = async ({ id }) => {
         try {
             const product = await ProductModel.findById(id)
@@ -73,7 +70,6 @@ class ProductService {
         }
     }
 
-    // [PUT]/v1/api/user/product/:id
     static updateProduct = async (id, file, { type, description, category, discount, }) => {
         try {
             const product = await ProductModel.findById(id)
@@ -119,7 +115,6 @@ class ProductService {
         }
     }
 
-    // [DEL]/v1/api/user/product/:id
     static deleteProduct = async ({ id }) => {
         try {
             await productModel.findByIdAndDelete(id)

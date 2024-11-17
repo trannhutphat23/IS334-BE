@@ -33,7 +33,13 @@ class CartController {
         }
     }
 
-    
+    getCartById = async (req, res, next) => {
+        try {
+            return res.status(201).json(await CartService.getCartById(req.params))
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new CartController()

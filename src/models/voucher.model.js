@@ -8,7 +8,6 @@ const voucherSchema = new Schema(
         name: {
             type: String,
             required: true,
-            unique: true
         },
         customerUsed: [
             {
@@ -24,6 +23,8 @@ const voucherSchema = new Schema(
             type: Date,
             required: true,
         },
+
+        //chain: tien, trade: %
         type: {
             type: String,
             enum: ['chain', 'trade'],

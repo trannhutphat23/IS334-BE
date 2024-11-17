@@ -1,79 +1,52 @@
 const Orders = require('../models/order.model')
-const Vouchers = require('../models/voucher.model')
-const ItemsModel = require('../models/product.model')
-const CustomerModel = require('../models/customer.model')
-const CartModel = require('../models/cart.model')
+const voucherModel = require('../models/voucher.model')
+const productModel = require('../models/product.model')
+const userModel = require('../models/user.model')
+const cartModel = require('../models/cart.model')
 const getData = require('../utils/formatRes')
+const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
 const _ = require('lodash');
+const orderModel = require('../models/order.model')
 class OrdersServices {
     
-    static addOrder = async ({ items, customer, userId, voucher, method, from }) => {
+    static addOrder = async ({ user, items, voucher, paymentStatus, paymentMethod, deliveryStatus }) => {
         // method is bank and cast
         try {
-            // check exist voucher
-            const existVoucher = await Vouchers.findById(voucher)
-
-            const existUser = await CustomerModel.findById(userId)
-            if (!existUser){
-                return {
-                    success: false,
-                    message: "Customer don't exist"
+            // check exist user
+            if (user) {
+                const existUser = await userModel.findById(user)
+                if (!existUser) {
+                    return new ConflictRequestError(`User does't exist`)
                 }
             }
 
-            // check exist list item
+            // check exist list voucher
             const results = await Promise.all(
-                items.map(async (ele) => {
-                    const existItem = await ItemsModel.findById(ele.item);
-                    return !!existItem;
+                voucher.map(async (ele) => {
+                    const existVoucher = await voucherModel.findById(ele);
+                    if (existVoucher) {
+                        return new ConflictRequestError(`Voucher doesn't exists`)
+                    }
+                    return !!existVoucher
                 })
-            );
-
+            )
             const allExistItem = results.every(exist => exist);
-
             if (!allExistItem) {
-                return {
-                    success: false,
-                    message: "One or more items don't exist",
-                };
+                return new BadRequestError(`One or more voucher doesn't exist`)
             }
 
-            const checkPaymentStatus = method === "cash" ? "Chua thanh toan" : "Da thanh toan"
-
-            let firstPrice = items.reduce((total, item) => {
-                return total + item.price;
-            }, 0);
-
-            let totalPrice = 0;
-            if (existVoucher){
-                totalPrice = (firstPrice*existVoucher.percent)/100; 
-            }
-
-            totalPrice = totalPrice + deliveryFee;
-            if (from == "cart"){
-                await CartModel.updateOne({customer: userId}, {$set: {items: []}})
-            }else{
-                const updatedItem = await ItemsModel.findById(items[0].item) 
-                const remainQuantity = updatedItem.quantity - items[0].amount
-                await ItemsModel.findByIdAndUpdate({_id: items[0].item}, {quantity: remainQuantity})
-            }
-
-            const newOrder = new Orders({
-                total: totalPrice,
-                intoMoney: firstPrice,
-                deliveryStatus: "Dang van chuyen",
-                paymentStatus: checkPaymentStatus,
-                paymentMethod: method,
-                deliveryFee,
-                items: items,
-                customer,
-                user: userId,
-                voucher
+            const order = new orderModel({
+                "user": user,
+                "items": items,
+                "voucher": voucher,
+                "paymentStatus": paymentStatus,
+                "paymentMethod": paymentMethod,
+                "deliveryStatus": deliveryStatus
             })
 
-            const savedOrder = newOrder.save()
+            const savedOrder = await order.save()
 
-            return (await (await (await savedOrder).populate('voucher')).populate('items.item')).populate('user')
+            return savedOrder
         } catch (error) {
             return {
                 success: false,
@@ -82,37 +55,17 @@ class OrdersServices {
         }
     }
 
-    static addOrderNoAccount = async ({quantity}, {itemId}) => {
+    static updateOrder = async ({ id }, { paymentStatus, deliveryStatus }) => {
         try {
-            const existItem = await ItemsModel.findById(itemId)
-            if (!existItem) {
-                return {
-                    success: false,
-                    message: "Item don't exist"
-                }
-            }
-            const remainQuantity = existItem.quantity - quantity
-
-            return {
-                item: await ItemsModel.findByIdAndUpdate(existItem._id, {quantity: remainQuantity}, {new: true}),
-                amount: quantity
-            }
+            return await orderModel.findByIdAndUpdate({ _id: id }, { paymentStatus, deliveryStatus }, {
+                new: true,
+                runValidators: true,
+            })
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
+            if (error.name === 'ValidationError') {
+                return new BadRequestError('Invalid data')
             }
-        }
-    }
-
-    static updateOrder = async ({ id }) => {
-        try {
-            return await Orders.findByIdAndUpdate({ id }, { total, intoMoney, date, deliveryStatus, paymentStatus })
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
+            throw new InternalServerError(error.message)
         }
     }
 
@@ -139,7 +92,12 @@ class OrdersServices {
 
     static deleteOrder = async ({ id }) => {
         try {
-            return await Orders.findByIdAndDelete(id)
+            await orderModel.findByIdAndDelete(id)
+
+            return {
+                success: true,
+                message: "delete successfully"
+            }
         } catch (error) {
             return {
                 success: false,
@@ -150,7 +108,7 @@ class OrdersServices {
 
     static deleteOrderNoAccount = async ({itemId, amount}) => {
         try {
-            const existItem = await ItemsModel.findById(itemId)
+            const existItem = await productModel.findById(itemId)
             if (!existItem) {
                 return {
                     success: false,
@@ -159,7 +117,7 @@ class OrdersServices {
             }
             const remainQuantity = Number(existItem.quantity) - Number(amount)
             return {
-                item: await ItemsModel.findByIdAndUpdate(existItem._id, {quantity: remainQuantity}, {new: true}),
+                item: await productModel.findByIdAndUpdate(existItem._id, {quantity: remainQuantity}, {new: true}),
                 amount: amount
             }
         } catch (error) {
@@ -172,8 +130,8 @@ class OrdersServices {
 
     static getOrder = async () => {
         try {
-            const orders = await Orders.find({})
-                        .populate("voucher").populate('items.item').populate('user')
+            const orders = await orderModel.find({})
+                        .populate("voucher").populate('items.product')
             return orders;
         } catch (error) {
             return {

@@ -110,7 +110,7 @@ class VouchersService {
         }
     }
 
-    static confirmVoucher = async ({ name, userId }) => {
+    static confirmVoucher = async ( id, userId ) => {
         try {
             const user = await userModel.findById(userId)
 
@@ -121,13 +121,16 @@ class VouchersService {
                 }
             }
 
-            const voucher = await voucherModel.findOne({ name })
+            const voucher = await voucherModel.findById(id)
 
             if (voucher) {
                 const currentTime = new Date().getTime()
 
                 if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
-                    if (voucher.customerUsed.some(user => user == userId)) {
+                    console.log(id, userId)
+                    console.log(voucher.customerUsed)
+                    
+                    if (voucher.customerUsed.some(user => user.toString() == userId.toString())) {
                         return {
                             success: false,
                             message: "voucher can only be used once"
@@ -139,6 +142,64 @@ class VouchersService {
 
                         await voucher.save()
 
+                        return {
+                            success: true,
+                            message: "used successfully",
+                            voucher: {
+                                type: voucher.type,
+                                value: voucher.value
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (voucher.startDay.getTime() > currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher cannot be used yet"
+                        }
+                    }
+
+                    if (voucher.endDay.getTime() < currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher expires"
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
+    static checkVoucher = async ( id, userId ) => {
+        try {
+            const user = await userModel.findById(userId)
+
+            if (!user) {
+                return {
+                    success: false,
+                    message: "wrong user"
+                }
+            }
+
+            const voucher = await voucherModel.findById(id)
+
+            if (voucher) {
+                const currentTime = new Date().getTime()
+
+                if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
+                    if (voucher.customerUsed.some(user => user.toString() == userId.toString())) {
+                        return {
+                            success: false,
+                            message: "voucher can only be used once"
+                        }
+                    }
+                    else {
                         return {
                             success: true,
                             message: "used successfully",

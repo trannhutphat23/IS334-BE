@@ -417,31 +417,11 @@ class AccessService {
 
     static getUsers = async () => {
         try {
-            const customers = await CustomerModel.find({})
-            const orders = await ordersModel.find({}).populate('user')
-            let customerTotals = customers.map((customer) => {
-                return {
-                    customer,
-                    totalIntoMoney: 0,
-                }
-            })
-            let customerLookup = {};
-            customerTotals.forEach(customer => {
-                customerLookup[customer.customer.email] = customer;
-            });
-
-            orders.forEach(order => {
-                let customerEmail = order.customer.email;
-                if (customerLookup.hasOwnProperty(customerEmail)) {
-                    customerLookup[customerEmail].totalIntoMoney += order.intoMoney;
-                }
-            });
-            return customerTotals;
+            const users = await userModel.find().lean()
+            
+            return users
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
+            return new InternalServerError(error.message)
         }
     }
 }

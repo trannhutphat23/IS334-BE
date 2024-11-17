@@ -49,6 +49,11 @@ const productSchema = new Schema(
             min: 0,
             default: 0,
         },
+        isStock: {
+            type: Boolean,
+            default: true,
+            required: true,
+        },
     },
     {
         timestamps: true,

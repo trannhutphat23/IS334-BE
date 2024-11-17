@@ -1,12 +1,11 @@
-const ProductModel = require('../models/product.model')
+const productModel = require('../models/product.model')
 const uploadImage = require('../utils/uploadImage.utils')
 const deleteImage = require('../utils/deleteImage.utils');
-const productModel = require('../models/product.model');
 
 class ProductService {
-    static addProduct = async (file, { name, type, description, category, discount, }) => {
+    static addProduct = async (file, { name, type, description, category, discount }) => {
         try {
-            const product = await ProductModel.findOne({ name }).lean();
+            const product = await productModel.findOne({ name }).lean();
             if (product) {
                 return {
                     success: false,
@@ -21,7 +20,7 @@ class ProductService {
             const cloudinaryFolder = 'Cafe/Product';
             const imageLink = await uploadImage(file.path, cloudinaryFolder);
 
-            const newProduct = new ProductModel({
+            const newProduct = new productModel({
                 "image": imageLink,
                 name, type, description, category, discount
             })
@@ -39,7 +38,7 @@ class ProductService {
 
     static getProduct = async () => {
         try {
-            const products = await ProductModel.find({})
+            const products = await productModel.find({})
 
             return products
         } catch (error) {
@@ -52,7 +51,7 @@ class ProductService {
 
     static getProductID = async ({ id }) => {
         try {
-            const product = await ProductModel.findById(id)
+            const product = await productModel.findById(id)
 
             if (!product) {
                 return {
@@ -70,9 +69,9 @@ class ProductService {
         }
     }
 
-    static updateProduct = async (id, file, { type, description, category, discount, }) => {
+    static updateProduct = async (id, file, { type, description, category, discount,isStock }) => {
         try {
-            const product = await ProductModel.findById(id)
+            const product = await productModel.findById(id)
 
             if (!product) {
                 return {
@@ -103,6 +102,9 @@ class ProductService {
 
             if (discount)
                 product.discount = discount
+
+            if (isStock)
+                product.isStock = isStock
 
             const savedProduct = await product.save()
 

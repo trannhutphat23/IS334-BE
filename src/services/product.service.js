@@ -124,9 +124,13 @@ class ProductService {
 
     static deleteProduct = async ({ id }) => {
         try {
-            await productModel.findByIdAndDelete(id)
+            const product = await productModel.findByIdAndDelete(id)
 
-
+            const linkArr = product.image.split('/')
+            const imgName = linkArr[linkArr.length - 1]
+            const imgID = imgName.split('.')[0]
+            const result = "Cafe/Product/" + imgID
+            await deleteImage(result)
 
             return {
                 success: true,

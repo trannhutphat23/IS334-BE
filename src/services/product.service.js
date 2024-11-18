@@ -1,6 +1,7 @@
 const productModel = require('../models/product.model')
 const uploadImage = require('../utils/uploadImage.utils')
 const deleteImage = require('../utils/deleteImage.utils');
+const cartModel = require('../models/cart.model')
 
 class ProductService {
     static addProduct = async (file, { name, type, description, category, discount }) => {
@@ -112,6 +113,7 @@ class ProductService {
                 product.isStock = isStock
 
             const savedProduct = await product.save()
+
 
             return savedProduct
         } catch (error) {

@@ -114,6 +114,27 @@ class ProductService {
 
             const savedProduct = await product.save()
 
+            const carts = await cartModel.find({"items.product": savedProduct.id})
+
+            if (carts) {
+                for(let cart of carts){
+                    cart.items.forEach(async (item, index) => {
+                        if (savedProduct.type.some(t => t.size == item.size)) {
+                            savedProduct.type.forEach(t => {
+                                if(t.size == item.size){
+                                    item.price = t.price
+                                    item.discount = savedProduct.discount
+                                }
+                            })
+                        }
+                        else{
+                            cart.items.splice(index, 1)
+                        }
+                    })
+
+                    await cart.save()
+                }
+            }
 
             return savedProduct
         } catch (error) {

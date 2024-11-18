@@ -4,11 +4,11 @@ const productModel = require('../models/product.model')
 const userModel = require('../models/user.model')
 const cartModel = require('../models/cart.model')
 const getData = require('../utils/formatRes')
-const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
+const { InternalServerError, BadRequestError, ConflictRequestError } = require('../utils/error.response')
 const _ = require('lodash');
 const orderModel = require('../models/order.model')
 class OrdersServices {
-    
+
     static addOrder = async ({ user, items, voucher, paymentStatus, paymentMethod, deliveryStatus }) => {
         // method is bank and cast
         try {
@@ -57,6 +57,56 @@ class OrdersServices {
 
     static updateOrder = async ({ id }, { paymentStatus, deliveryStatus }) => {
         try {
+            if (deliveryStatus) {
+                const order = await orderModel.findById(id)
+
+                if (order.deliveryStatus == 'pending') {
+                    if (deliveryStatus != 'confirmed' && deliveryStatus != 'systemCancel' && deliveryStatus != 'customerCancel') {
+                        return {
+                            success: false,
+                            message: "wrong delivery route"
+                        }
+                    }
+                }
+
+                if (order.deliveryStatus == 'confirmed') {
+                    if (deliveryStatus != 'doing') {
+                        return {
+                            success: false,
+                            message: "wrong delivery route"
+                        }
+                    }
+                }
+
+                if (order.deliveryStatus == 'doing') {
+                    if (deliveryStatus != 'shipping') {
+                        return {
+                            success: false,
+                            message: "wrong delivery route"
+                        }
+                    }
+                }
+
+                if (order.deliveryStatus == 'shipping') {
+                    if (deliveryStatus != 'success'&&deliveryStatus != 'fail') {
+                        return {
+                            success: false,
+                            message: "wrong delivery route"
+                        }
+                    }
+                }
+
+                if (order.deliveryStatus == 'systemCancel'||order.deliveryStatus == 'customerCancel'||order.deliveryStatus == 'success'||order.deliveryStatus == 'fail') {
+                    if (deliveryStatus != order.deliveryStatus) {
+                        return {
+                            success: false,
+                            message: "wrong delivery route"
+                        }
+                    }
+                }
+            }
+
+
             return await orderModel.findByIdAndUpdate({ _id: id }, { paymentStatus, deliveryStatus }, {
                 new: true,
                 runValidators: true,
@@ -69,7 +119,7 @@ class OrdersServices {
         }
     }
 
-    static changeStatus = async ({id}) => {
+    static changeStatus = async ({ id }) => {
         try {
             const existOrder = await Orders.findById(id)
             if (!existOrder) {
@@ -78,8 +128,8 @@ class OrdersServices {
                     message: "Order don't exist"
                 }
             }
-            if (existOrder.deliveryStatus === 'Dang van chuyen'){
-                return await Orders.findByIdAndUpdate( existOrder._id, { deliveryStatus: "Đã hoàn thành" })
+            if (existOrder.deliveryStatus === 'Dang van chuyen') {
+                return await Orders.findByIdAndUpdate(existOrder._id, { deliveryStatus: "Đã hoàn thành" })
             }
             return existOrder
         } catch (error) {
@@ -106,7 +156,7 @@ class OrdersServices {
         }
     }
 
-    static deleteOrderNoAccount = async ({itemId, amount}) => {
+    static deleteOrderNoAccount = async ({ itemId, amount }) => {
         try {
             const existItem = await productModel.findById(itemId)
             if (!existItem) {
@@ -117,7 +167,7 @@ class OrdersServices {
             }
             const remainQuantity = Number(existItem.quantity) - Number(amount)
             return {
-                item: await productModel.findByIdAndUpdate(existItem._id, {quantity: remainQuantity}, {new: true}),
+                item: await productModel.findByIdAndUpdate(existItem._id, { quantity: remainQuantity }, { new: true }),
                 amount: amount
             }
         } catch (error) {
@@ -131,7 +181,7 @@ class OrdersServices {
     static getOrder = async () => {
         try {
             const orders = await orderModel.find({})
-                        .populate("voucher").populate('items.product')
+                .populate("voucher").populate('items.product')
             return orders;
         } catch (error) {
             return {
@@ -144,13 +194,13 @@ class OrdersServices {
     static getOrderID = async ({ id }) => {
         try {
             const existOrder = await Orders.findById(id);
-            if (!existOrder){
+            if (!existOrder) {
                 return {
                     success: false,
                     message: "Don't exist"
                 }
             }
-            
+
             return (await existOrder.populate('voucher')).populate('items.item');
         } catch (error) {
             return {
@@ -160,7 +210,7 @@ class OrdersServices {
         }
     }
 
-    static getOrdersByUserId = async ({userId}) => {
+    static getOrdersByUserId = async ({ userId }) => {
         try {
             const existUser = await CustomerModel.findById(userId)
             if (!existUser) {
@@ -169,7 +219,7 @@ class OrdersServices {
                     message: "Customer don't exist"
                 }
             }
-            return await Orders.find({user: userId}).populate('items.item')
+            return await Orders.find({ user: userId }).populate('items.item')
         } catch (error) {
             return {
                 success: false,
@@ -178,7 +228,7 @@ class OrdersServices {
         }
     }
 
-    static paymentOrder = async ({amount, orderInfo, items, voucher, userId, method, from}) => {
+    static paymentOrder = async ({ amount, orderInfo, items, voucher, userId, method, from }) => {
         try {
             // test momo:
             // NGUYEN VAN A
@@ -196,13 +246,13 @@ class OrdersServices {
             // var amount = '1000'; // Lượng tiền của hóa  <lượng tiền test ko dc cao quá>
             var orderId = partnerCode + new Date().getTime(); // mã Đơn hàng, có thể đổi
             var requestId = orderId;
-            var extraData =`deliveryFee-${deliveryFee}+items-${JSON.stringify(items)}+voucher-${voucher}+customer-${JSON.stringify(customer)}+userId-${userId}+method-${method}+from-${from}`; // đây là data thêm của doanh nghiệp (địa chỉ, mã COD,....)
+            var extraData = `deliveryFee-${deliveryFee}+items-${JSON.stringify(items)}+voucher-${voucher}+customer-${JSON.stringify(customer)}+userId-${userId}+method-${method}+from-${from}`; // đây là data thêm của doanh nghiệp (địa chỉ, mã COD,....)
             var paymentCode = 'T8Qii53fAXyUftPV3m9ysyRhEanUs9KlOPfHgpMR0ON50U10Bh+vZdpJU7VY4z+Z2y77fJHkoDc69scwwzLuW5MzeUKTwPo3ZMaB29imm6YulqnWfTkgzqRaion+EuD7FN9wZ4aXE1+mRt0gHsU193y+yxtRgpmY7SDMU9hCKoQtYyHsfFR5FUAOAKMdw2fzQqpToei3rnaYvZuYaxolprm9+/+WIETnPUDlxCYOiw7vPeaaYQQH0BF0TxyU3zu36ODx980rJvPAgtJzH1gUrlxcSS1HQeQ9ZaVM1eOK/jl8KJm6ijOwErHGbgf/hVymUQG65rHU2MWz9U8QUjvDWA==';
-            var orderGroupId ='';
-            var autoCapture =true;
+            var orderGroupId = '';
+            var autoCapture = true;
             var lang = 'vi'; // ngôn ngữ
             console.log("res==================", extraData)
-            
+
             // không đụng tới dòng dưới
             var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType;
             //puts raw signature
@@ -218,21 +268,21 @@ class OrdersServices {
 
             // data gửi đi dưới dạng JSON, gửi tới MoMoEndpoint
             const requestBody = JSON.stringify({
-                partnerCode : partnerCode,
-                partnerName : "Test",
-                storeId : "MomoTestStore",
-                requestId : requestId,
-                amount : amount,
-                orderId : orderId,
-                orderInfo : orderInfo,
-                redirectUrl : redirectUrl,
-                ipnUrl : ipnUrl,
-                lang : lang,
+                partnerCode: partnerCode,
+                partnerName: "Test",
+                storeId: "MomoTestStore",
+                requestId: requestId,
+                amount: amount,
+                orderId: orderId,
+                orderInfo: orderInfo,
+                redirectUrl: redirectUrl,
+                ipnUrl: ipnUrl,
+                lang: lang,
                 requestType: requestType,
                 autoCapture: autoCapture,
-                extraData : extraData,
+                extraData: extraData,
                 orderGroupId: orderGroupId,
-                signature : signature
+                signature: signature
             });
             // tạo object https
             const https = require('https');
@@ -274,7 +324,7 @@ class OrdersServices {
                 req.write(requestBody);
                 req.end();
             })
-        // dữ liệu trả về khi thành công: ?partnerCode=MOMO&orderId=MOMO1713984978976&requestId=MOMO1713984978976&amount=1000&orderInfo=30k&orderType=momo_wallet&transId=4029232035&resultCode=0&message=Thành+công.&payType=credit&responseTime=1713985045244&extraData=&signature=0d6f0e650eb5d320c3a65df17a620f01c09d0eae742d3eb7e84177b2ebda6fe0
+            // dữ liệu trả về khi thành công: ?partnerCode=MOMO&orderId=MOMO1713984978976&requestId=MOMO1713984978976&amount=1000&orderInfo=30k&orderType=momo_wallet&transId=4029232035&resultCode=0&message=Thành+công.&payType=credit&responseTime=1713985045244&extraData=&signature=0d6f0e650eb5d320c3a65df17a620f01c09d0eae742d3eb7e84177b2ebda6fe0
         } catch (error) {
             return {
                 success: false,

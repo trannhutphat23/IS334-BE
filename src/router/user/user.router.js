@@ -54,7 +54,7 @@ router.put('/orders/:id', OrderController.updateOrder)
 router.delete('/orders/:id', OrderController.deleteOrder)
 router.delete('/ordersAnonymus', OrderController.deleteOrderNoAccount)
 router.post('/orders/payment', OrderController.paymentOrder)
-router.put('/changeStatus/:id', OrderController.changeStatus)
+router.put('/orders/changeStatus/:id', OrderController.changeStatus)
 
 //cart
 router.post('/carts/addCart', CartController.addCart)

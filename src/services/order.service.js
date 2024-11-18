@@ -24,12 +24,13 @@ class OrdersServices {
             const results = await Promise.all(
                 voucher.map(async (ele) => {
                     const existVoucher = await voucherModel.findById(ele);
-                    if (existVoucher) {
-                        return new ConflictRequestError(`Voucher doesn't exists`)
+                    if (!existVoucher) {
+                        return false
                     }
                     return !!existVoucher
                 })
             )
+
             const allExistItem = results.every(exist => exist);
             if (!allExistItem) {
                 return new BadRequestError(`One or more voucher doesn't exist`)
@@ -106,7 +107,6 @@ class OrdersServices {
                 }
             }
 
-
             return await orderModel.findByIdAndUpdate({ _id: id }, { paymentStatus, deliveryStatus }, {
                 new: true,
                 runValidators: true,
@@ -119,19 +119,65 @@ class OrdersServices {
         }
     }
 
-    static changeStatus = async ({ id }) => {
+    static changeStatus = async ({ id }, {deliveryStatus}) => {
         try {
-            const existOrder = await Orders.findById(id)
+            const existOrder = await orderModel.findById(id)
             if (!existOrder) {
                 return {
                     success: false,
                     message: "Order don't exist"
                 }
             }
-            if (existOrder.deliveryStatus === 'Dang van chuyen') {
-                return await Orders.findByIdAndUpdate(existOrder._id, { deliveryStatus: "Đã hoàn thành" })
+            
+            if (existOrder.deliveryStatus == 'pending') {
+                if (deliveryStatus != 'confirmed' && deliveryStatus != 'systemCancel' && deliveryStatus != 'customerCancel') {
+                    return {
+                        success: false,
+                        message: "wrong delivery route"
+                    }
+                }
             }
-            return existOrder
+
+            if (existOrder.deliveryStatus == 'confirmed') {
+                if (deliveryStatus != 'doing') {
+                    return {
+                        success: false,
+                        message: "wrong delivery route"
+                    }
+                }
+            }
+
+            if (existOrder.deliveryStatus == 'doing') {
+                if (deliveryStatus != 'shipping') {
+                    return {
+                        success: false,
+                        message: "wrong delivery route"
+                    }
+                }
+            }
+
+            if (existOrder.deliveryStatus == 'shipping') {
+                if (deliveryStatus != 'success'&&deliveryStatus != 'fail') {
+                    return {
+                        success: false,
+                        message: "wrong delivery route"
+                    }
+                }
+            }
+
+            if (existOrder.deliveryStatus == 'systemCancel'||existOrder.deliveryStatus == 'customerCancel'||existOrder.deliveryStatus == 'success'||existOrder.deliveryStatus == 'fail') {
+                if (deliveryStatus != existOrder.deliveryStatus) {
+                    return {
+                        success: false,
+                        message: "wrong delivery route"
+                    }
+                }
+            }
+
+            return await orderModel.findByIdAndUpdate({ _id: id }, { deliveryStatus }, {
+                new: true,
+                runValidators: true,
+            })
         } catch (error) {
             return {
                 success: false,

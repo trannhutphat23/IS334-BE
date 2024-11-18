@@ -89,6 +89,8 @@ class ProductService {
                 const imgID = imgName.split('.')[0]
                 const result = "Cafe/Product/" + imgID
                 await deleteImage(result)
+
+                product.image = imageLink
             }
 
             if (type) {

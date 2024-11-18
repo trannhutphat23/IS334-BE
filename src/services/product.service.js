@@ -83,9 +83,12 @@ class ProductService {
             if (file) {
                 const cloudinaryFolder = 'Cafe/Product';
                 const imageLink = await uploadImage(file.path, cloudinaryFolder);
-                deleteImage(product.image)
 
-                product.image = imageLink
+                const linkArr = product.image.split('/')
+                const imgName = linkArr[linkArr.length - 1]
+                const imgID = imgName.split('.')[0]
+                const result = "Cafe/Product/" + imgID
+                await deleteImage(result)
             }
 
             if (type) {
@@ -120,6 +123,9 @@ class ProductService {
     static deleteProduct = async ({ id }) => {
         try {
             await productModel.findByIdAndDelete(id)
+
+
+
             return {
                 success: true,
                 message: "delete successfully"

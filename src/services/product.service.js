@@ -1,7 +1,8 @@
 const productModel = require('../models/product.model')
 const uploadImage = require('../utils/uploadImage.utils')
 const deleteImage = require('../utils/deleteImage.utils');
-const cartModel = require('../models/cart.model')
+const cartModel = require('../models/cart.model');
+const { BadRequestError } = require('../utils/error.response');
 
 class ProductService {
     static addProduct = async (file, { name, type, description, category, discount }) => {
@@ -16,6 +17,30 @@ class ProductService {
 
             if (type) {
                 type = JSON.parse(type)
+                
+                const priceSizeL = type.find(ele => ele.size === "L")
+                const priceSizeM = type.find(ele => ele.size === "M")
+                const priceSizeS = type.find(ele => ele.size === "S")
+
+                if (priceSizeL) {
+                    if (priceSizeM && priceSizeL.price >= priceSizeM.price) {
+                        return new BadRequestError('Price of size L must be less than or equal to price of size M')
+                    }
+                    
+                    if (priceSizeS && priceSizeL.price >= priceSizeS.price) {
+                        return new BadRequestError('Price of size L must be less than or equal to price of size S')
+                    }
+                }else {
+                    if (priceSizeM.price >= priceSizeS.price) {
+                        return new BadRequestError('Price of size M must be less than or equal to price of size S')
+                    }
+                }
+
+                if (priceSizeM) {
+                    if (priceSizeS && priceSizeM.price >= priceSizeS.price) {
+                        return new BadRequestError('Price of size M must be less than or equal to price of size L')
+                    }
+                }
             }
 
             const cloudinaryFolder = 'Cafe/Product';
@@ -96,6 +121,30 @@ class ProductService {
 
             if (type) {
                 type = JSON.parse(type)
+
+                const priceSizeL = type.find(ele => ele.size === "L")
+                const priceSizeM = type.find(ele => ele.size === "M")
+                const priceSizeS = type.find(ele => ele.size === "S")
+
+                if (priceSizeL) {
+                    if (priceSizeM && priceSizeL.price >= priceSizeM.price) {
+                        return new BadRequestError('Price of size L must be less than or equal to price of size M')
+                    }
+                    
+                    if (priceSizeS && priceSizeL.price >= priceSizeS.price) {
+                        return new BadRequestError('Price of size L must be less than or equal to price of size S')
+                    }
+                }else {
+                    if (priceSizeM.price >= priceSizeS.price) {
+                        return new BadRequestError('Price of size M must be less than or equal to price of size S')
+                    }
+                }
+
+                if (priceSizeM) {
+                    if (priceSizeS && priceSizeM.price >= priceSizeS.price) {
+                        return new BadRequestError('Price of size M must be less than or equal to price of size L')
+                    }
+                }
 
                 product.type = type
             }

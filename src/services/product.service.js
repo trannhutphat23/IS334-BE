@@ -31,7 +31,7 @@ class ProductService {
                         return new BadRequestError('Price of size L must be less than or equal to price of size S')
                     }
                 }else {
-                    if (priceSizeM.price >= priceSizeS.price) {
+                    if (priceSizeM && priceSizeM.price >= priceSizeS.price) {
                         return new BadRequestError('Price of size M must be less than or equal to price of size S')
                     }
                 }
@@ -135,7 +135,7 @@ class ProductService {
                         return new BadRequestError('Price of size L must be less than or equal to price of size S')
                     }
                 }else {
-                    if (priceSizeM.price >= priceSizeS.price) {
+                    if (priceSizeM && priceSizeM.price >= priceSizeS.price) {
                         return new BadRequestError('Price of size M must be less than or equal to price of size S')
                     }
                 }

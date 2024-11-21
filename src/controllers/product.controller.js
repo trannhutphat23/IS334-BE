@@ -41,6 +41,14 @@ class ProductController {
             next(error)
         }
     }
+
+    listCategoryOfProduct = async (req, res, next) => {
+        try {
+            return res.status(201).json(await ProductService.listCategoryOfProduct())
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new ProductController()

@@ -31,6 +31,7 @@ router.post('/contact', AccessController.contact)
 
 //product
 router.get('/products', ProductController.getProduct)
+router.get('/products/categories', ProductController.listCategoryOfProduct)
 router.get('/products/:id', ProductController.getProductID)
 router.post('/products', upload.single('image'), ProductController.addProduct)
 router.put('/products/:id', upload.single('image'), ProductController.updateProduct)

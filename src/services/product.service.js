@@ -2,7 +2,7 @@ const productModel = require('../models/product.model')
 const uploadImage = require('../utils/uploadImage.utils')
 const deleteImage = require('../utils/deleteImage.utils');
 const cartModel = require('../models/cart.model');
-const { BadRequestError } = require('../utils/error.response');
+const { BadRequestError, InternalServerError } = require('../utils/error.response');
 
 class ProductService {
     static addProduct = async (file, { name, type, description, category, discount }) => {
@@ -213,6 +213,35 @@ class ProductService {
                 success: false,
                 message: error.message
             }
+        }
+    }
+
+    static listCategoryOfProduct = async () => {
+        try {
+            const result = await productModel.aggregate([
+                {
+                  $group: {
+                    _id: "$category",
+                    products: {
+                      $push: {
+                        name: "$name",
+                        image: "$image",
+                        description: "$description",
+                        type: "$type",
+                        discount: "$discount",
+                        isStock: "$isStock",
+                      },
+                    },
+                  },
+                },
+                {
+                  $sort: { _id: 1 },
+                },
+            ])
+
+            return result
+        } catch (error) {
+            return new InternalServerError(error.message)
         }
     }
 }

@@ -9,7 +9,7 @@ const _ = require('lodash');
 const orderModel = require('../models/order.model')
 class OrdersServices {
 
-    static addOrder = async ({ user, items, voucher, paymentStatus, paymentMethod, deliveryStatus }) => {
+    static addOrder = async ({ user, items, voucher, paymentStatus, paymentMethod, deliveryStatus, note }) => {
         // method is bank and cast
         try {
             // check exist user
@@ -42,7 +42,8 @@ class OrdersServices {
                 "voucher": voucher,
                 "paymentStatus": paymentStatus,
                 "paymentMethod": paymentMethod,
-                "deliveryStatus": deliveryStatus
+                "deliveryStatus": deliveryStatus,
+                "note": note
             })
 
             const savedOrder = await order.save()
@@ -56,7 +57,7 @@ class OrdersServices {
         }
     }
 
-    static updateOrder = async ({ id }, { paymentStatus, deliveryStatus }) => {
+    static updateOrder = async ({ id }, { paymentStatus, deliveryStatus, note }) => {
         try {
             if (deliveryStatus) {
                 const order = await orderModel.findById(id)
@@ -107,7 +108,7 @@ class OrdersServices {
                 }
             }
 
-            return await orderModel.findByIdAndUpdate({ _id: id }, { paymentStatus, deliveryStatus }, {
+            return await orderModel.findByIdAndUpdate({ _id: id }, { paymentStatus, deliveryStatus, note }, {
                 new: true,
                 runValidators: true,
             })

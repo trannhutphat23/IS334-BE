@@ -17,28 +17,30 @@ class ProductService {
 
             if (type) {
                 type = JSON.parse(type)
-                
+
                 const priceSizeL = type.find(ele => ele.size === "L")
                 const priceSizeM = type.find(ele => ele.size === "M")
                 const priceSizeS = type.find(ele => ele.size === "S")
 
-                if (priceSizeL) {
-                    if (priceSizeM && priceSizeL.price >= priceSizeM.price) {
-                        return new BadRequestError('Price of size L must be less than or equal to price of size M')
+                if (priceSizeL.price !== undefined && priceSizeM !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeM && priceSizeM >= priceSizeS.price) {
+                    } else {
+                        console.log("Incorrect condition L >= M >= S");
                     }
-                    
-                    if (priceSizeS && priceSizeL.price >= priceSizeS.price) {
-                        return new BadRequestError('Price of size L must be less than or equal to price of size S')
+                } else if (priceSizeL.price !== undefined && priceSizeM !== undefined) {
+                    if (priceSizeL.price >= priceSizeM) {
+                    } else {
+                        console.log("Incorrect condition L >= M");
                     }
-                }else {
-                    if (priceSizeM && priceSizeM.price >= priceSizeS.price) {
-                        return new BadRequestError('Price of size M must be less than or equal to price of size S')
+                } else if (priceSizeM !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeM >= priceSizeS.price) {
+                    } else {
+                        console.log("Incorrect condition M >= S");
                     }
-                }
-
-                if (priceSizeM) {
-                    if (priceSizeS && priceSizeM.price >= priceSizeS.price) {
-                        return new BadRequestError('Price of size M must be less than or equal to price of size L')
+                } else if (priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeS.price) {
+                    } else {
+                        console.log("Incorrect condition L >= S");
                     }
                 }
             }
@@ -95,7 +97,7 @@ class ProductService {
         }
     }
 
-    static updateProduct = async (id, file, { type, description, category, discount,isStock }) => {
+    static updateProduct = async (id, file, { type, description, category, discount, isStock }) => {
         try {
             const product = await productModel.findById(id)
 
@@ -126,23 +128,25 @@ class ProductService {
                 const priceSizeM = type.find(ele => ele.size === "M")
                 const priceSizeS = type.find(ele => ele.size === "S")
 
-                if (priceSizeL) {
-                    if (priceSizeM && priceSizeL.price >= priceSizeM.price) {
-                        return new BadRequestError('Price of size L must be less than or equal to price of size M')
+                if (priceSizeL.price !== undefined && priceSizeM !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeM && priceSizeM >= priceSizeS.price) {
+                    } else {
+                        console.log("Incorrect condition L >= M >= S");
                     }
-                    
-                    if (priceSizeS && priceSizeL.price >= priceSizeS.price) {
-                        return new BadRequestError('Price of size L must be less than or equal to price of size S')
+                } else if (priceSizeL.price !== undefined && priceSizeM !== undefined) {
+                    if (priceSizeL.price >= priceSizeM) {
+                    } else {
+                        console.log("Incorrect condition L >= M");
                     }
-                }else {
-                    if (priceSizeM && priceSizeM.price >= priceSizeS.price) {
-                        return new BadRequestError('Price of size M must be less than or equal to price of size S')
+                } else if (priceSizeM !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeM >= priceSizeS.price) {
+                    } else {
+                        console.log("Incorrect condition M >= S");
                     }
-                }
-
-                if (priceSizeM) {
-                    if (priceSizeS && priceSizeM.price >= priceSizeS.price) {
-                        return new BadRequestError('Price of size M must be less than or equal to price of size L')
+                } else if (priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeS.price) {
+                    } else {
+                        console.log("Incorrect condition L >= S");
                     }
                 }
 
@@ -163,20 +167,20 @@ class ProductService {
 
             const savedProduct = await product.save()
 
-            const carts = await cartModel.find({"items.product": savedProduct.id})
+            const carts = await cartModel.find({ "items.product": savedProduct.id })
 
             if (carts) {
-                for(let cart of carts){
+                for (let cart of carts) {
                     cart.items.forEach(async (item, index) => {
                         if (savedProduct.type.some(t => t.size == item.size)) {
                             savedProduct.type.forEach(t => {
-                                if(t.size == item.size){
+                                if (t.size == item.size) {
                                     item.price = t.price
                                     item.discount = savedProduct.discount
                                 }
                             })
                         }
-                        else{
+                        else {
                             cart.items.splice(index, 1)
                         }
                     })
@@ -198,6 +202,28 @@ class ProductService {
         try {
             const product = await productModel.findByIdAndDelete(id)
 
+            const carts = await cartModel.find({ "items.product": product.id })
+
+            if (carts) {
+                for (let cart of carts) {
+                    cart.items.forEach(async (item, index) => {
+                        if (product.type.some(t => t.size == item.size)) {
+                            product.type.forEach(t => {
+                                if (t.size == item.size) {
+                                    item.price = t.price
+                                    item.discount = product.discount
+                                }
+                            })
+                        }
+                        else {
+                            cart.items.splice(index, 1)
+                        }
+                    })
+
+                    await cart.save()
+                }
+            }
+
             const linkArr = product.image.split('/')
             const imgName = linkArr[linkArr.length - 1]
             const imgID = imgName.split('.')[0]
@@ -207,7 +233,7 @@ class ProductService {
             return {
                 success: true,
                 message: "delete successfully"
-            } 
+            }
         } catch (error) {
             return {
                 success: false,
@@ -220,22 +246,22 @@ class ProductService {
         try {
             const result = await productModel.aggregate([
                 {
-                  $group: {
-                    _id: "$category",
-                    products: {
-                      $push: {
-                        name: "$name",
-                        image: "$image",
-                        description: "$description",
-                        type: "$type",
-                        discount: "$discount",
-                        isStock: "$isStock",
-                      },
+                    $group: {
+                        _id: "$category",
+                        products: {
+                            $push: {
+                                name: "$name",
+                                image: "$image",
+                                description: "$description",
+                                type: "$type",
+                                discount: "$discount",
+                                isStock: "$isStock",
+                            },
+                        },
                     },
-                  },
                 },
                 {
-                  $sort: { _id: 1 },
+                    $sort: { _id: 1 },
                 },
             ])
 

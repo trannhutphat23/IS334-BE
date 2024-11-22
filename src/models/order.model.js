@@ -63,6 +63,9 @@ const orderSchema = new Schema(
             required: true,
             enum: ['pending', 'confirmed','systemCancel','customerCancel','doing', 'shipping', 'success','fail'],
         },
+        note: {
+            type: String,
+        },
     },
     {
         timestamps: true,

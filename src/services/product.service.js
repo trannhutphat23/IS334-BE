@@ -22,25 +22,25 @@ class ProductService {
                 const priceSizeM = type.find(ele => ele.size === "M")
                 const priceSizeS = type.find(ele => ele.size === "S")
 
-                if (priceSizeL.price !== undefined && priceSizeM !== undefined && priceSizeS.price !== undefined) {
-                    if (priceSizeL.price >= priceSizeM && priceSizeM >= priceSizeS.price) {
+                if (priceSizeL&&priceSizeM&&priceSizeS&&priceSizeL.price !== undefined && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeM.price && priceSizeM.price >= priceSizeS.price) {
                     } else {
-                        console.log("Incorrect condition L >= M >= S");
+                        return new BadRequestError("Incorrect condition L >= M >= S");
                     }
-                } else if (priceSizeL.price !== undefined && priceSizeM !== undefined) {
-                    if (priceSizeL.price >= priceSizeM) {
+                } else if (priceSizeL&&priceSizeM&&priceSizeL.price !== undefined && priceSizeM.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeM.price) {
                     } else {
-                        console.log("Incorrect condition L >= M");
+                        return new BadRequestError("Incorrect condition L >= M");
                     }
-                } else if (priceSizeM !== undefined && priceSizeS.price !== undefined) {
-                    if (priceSizeM >= priceSizeS.price) {
+                } else if (priceSizeM&&priceSizeS&&priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeM.price >= priceSizeS.price) {
                     } else {
-                        console.log("Incorrect condition M >= S");
+                        return new BadRequestError("Incorrect condition M >= S");
                     }
-                } else if (priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
+                } else if (priceSizeS&&priceSizeL&&priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeL.price >= priceSizeS.price) {
                     } else {
-                        console.log("Incorrect condition L >= S");
+                        return new BadRequestError("Incorrect condition L >= S");
                     }
                 }
             }
@@ -128,25 +128,25 @@ class ProductService {
                 const priceSizeM = type.find(ele => ele.size === "M")
                 const priceSizeS = type.find(ele => ele.size === "S")
 
-                if (priceSizeL.price !== undefined && priceSizeM !== undefined && priceSizeS.price !== undefined) {
-                    if (priceSizeL.price >= priceSizeM && priceSizeM >= priceSizeS.price) {
+                if (priceSizeL&&priceSizeM&&priceSizeS&&priceSizeL.price !== undefined && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeM.price && priceSizeM.price >= priceSizeS.price) {
                     } else {
-                        console.log("Incorrect condition L >= M >= S");
+                        return new BadRequestError("Incorrect condition L >= M >= S");
                     }
-                } else if (priceSizeL.price !== undefined && priceSizeM !== undefined) {
-                    if (priceSizeL.price >= priceSizeM) {
+                } else if (priceSizeL&&priceSizeM&&priceSizeL.price !== undefined && priceSizeM.price !== undefined) {
+                    if (priceSizeL.price >= priceSizeM.price) {
                     } else {
-                        console.log("Incorrect condition L >= M");
+                        return new BadRequestError("Incorrect condition L >= M");
                     }
-                } else if (priceSizeM !== undefined && priceSizeS.price !== undefined) {
-                    if (priceSizeM >= priceSizeS.price) {
+                } else if (priceSizeM&&priceSizeS&&priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                    if (priceSizeM.price >= priceSizeS.price) {
                     } else {
-                        console.log("Incorrect condition M >= S");
+                        return new BadRequestError("Incorrect condition M >= S");
                     }
-                } else if (priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
+                } else if (priceSizeS&&priceSizeL&&priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeL.price >= priceSizeS.price) {
                     } else {
-                        console.log("Incorrect condition L >= S");
+                        return new BadRequestError("Incorrect condition L >= S");
                     }
                 }
 

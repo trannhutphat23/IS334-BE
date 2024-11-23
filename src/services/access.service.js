@@ -53,6 +53,10 @@ class AccessService {
                 "password": passwordHash,
             })
 
+            const payload = {id: newUser._id, email, phone};
+
+            const accessToken = AuthService.createAccessToken(payload);
+
             if (email) {
                 var transporter = nodemailer.createTransport({
                     service: 'gmail',
@@ -100,7 +104,8 @@ class AccessService {
             }
             return {
                 success: true,
-                user: getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: newUser})
+                user: getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: newUser}),
+                accessToken: accessToken
             }
        } catch (error) {
             // Validation Error
@@ -116,7 +121,7 @@ class AccessService {
                 }
             }
             // Internal Server Error
-            throw new InternalServerError(error.message)
+            return new InternalServerError(error.message)
        }
     }
     // [POST]/v1/api/login

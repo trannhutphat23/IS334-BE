@@ -45,6 +45,7 @@ router.get('/vouchers/:id', VouchersController.getVoucherID)
 router.put('/vouchers/:id', VouchersController.updateVoucher)
 router.delete('/vouchers/:id', VouchersController.deleteVoucher)
 router.post('/vouchers/confirmVoucher', VouchersController.confirmVoucher)
+router.post('/vouchers/checkVoucher', VouchersController.checkVoucher)
 
 //orders
 router.post('/orders', OrderController.addOrder)

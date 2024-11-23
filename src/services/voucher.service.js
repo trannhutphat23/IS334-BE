@@ -1,6 +1,6 @@
 const voucherModel = require('../models/voucher.model');
 const userModel = require('../models/user.model');
-const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
+const { InternalServerError, BadRequestError, ConflictRequestError } = require('../utils/error.response')
 
 class VouchersService {
     // [POST]/v1/api/user/vouchers
@@ -110,7 +110,7 @@ class VouchersService {
         }
     }
 
-    static confirmVoucher = async ( id, userId ) => {
+    static confirmVoucher = async (id, userId) => {
         try {
             const user = await userModel.findById(userId)
 
@@ -129,7 +129,7 @@ class VouchersService {
                 if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
                     console.log(id, userId)
                     console.log(voucher.customerUsed)
-                    
+
                     if (voucher.customerUsed.some(user => user.toString() == userId.toString())) {
                         return {
                             success: false,
@@ -176,7 +176,7 @@ class VouchersService {
         }
     }
 
-    static checkVoucher = async ( id, userId ) => {
+    static checkVoucher = async (id, userId) => {
         try {
             const user = await userModel.findById(userId)
 
@@ -201,8 +201,6 @@ class VouchersService {
                     }
                     else {
                         return {
-                            success: true,
-                            message: "used successfully",
                             voucher: {
                                 type: voucher.type,
                                 value: voucher.value
@@ -234,6 +232,44 @@ class VouchersService {
         }
     }
 
+    static checkStatusVoucher = async ({id}) => {
+        try {
+            const voucher = await voucherModel.findById(id)
+
+            if (voucher) {
+                const currentTime = new Date().getTime()
+
+                if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
+                    return {
+                        voucher: {
+                            success: true,
+                            message: "voucher available"
+                        }
+                    }
+                }
+                else {
+                    if (voucher.startDay.getTime() > currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher cannot be used yet"
+                        }
+                    }
+
+                    if (voucher.endDay.getTime() < currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher expires"
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
 }
 
 module.exports = VouchersService

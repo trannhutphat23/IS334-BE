@@ -243,7 +243,7 @@ class VouchersService {
                     return {
                         voucher: {
                             success: true,
-                            message: "voucher available"
+                            message: "available"
                         }
                     }
                 }
@@ -251,14 +251,14 @@ class VouchersService {
                     if (voucher.startDay.getTime() > currentTime) {
                         return {
                             success: false,
-                            message: "voucher cannot be used yet"
+                            message: "pending"
                         }
                     }
 
                     if (voucher.endDay.getTime() < currentTime) {
                         return {
                             success: false,
-                            message: "voucher expires"
+                            message: "expire"
                         }
                     }
                 }

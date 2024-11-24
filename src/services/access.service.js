@@ -429,6 +429,16 @@ class AccessService {
             return new InternalServerError(error.message)
         }
     }
+
+    static getUserById = async ({id}) => {
+        try {
+            const user = await userModel.findById(id)
+            
+            return user
+        } catch (error) {
+            return new InternalServerError(error.message)
+        }
+    }
 }
 
 module.exports = AccessService;

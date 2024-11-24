@@ -70,5 +70,6 @@ router.get('/carts/getCartById/:id', CartController.getCartById)
 
 //admin
 router.get('/users', AccessController.getUsers)
+router.get('/users/:id', AccessController.getUserById)
 
 module.exports = router

@@ -4,6 +4,7 @@ const productModel = require('../models/product.model')
 const userModel = require('../models/user.model')
 const cartModel = require('../models/cart.model')
 const getData = require('../utils/formatRes')
+const voucherService = require('../services/voucher.service')
 const { InternalServerError, BadRequestError, ConflictRequestError } = require('../utils/error.response')
 const _ = require('lodash');
 const orderModel = require('../models/order.model')
@@ -20,20 +21,82 @@ class OrdersServices {
                 }
             }
 
-            // check exist list voucher
-            const results = await Promise.all(
-                voucher.map(async (ele) => {
-                    const existVoucher = await voucherModel.findById(ele);
-                    if (!existVoucher) {
-                        return false
-                    }
-                    return !!existVoucher
-                })
-            )
+            let total = items.reduce((total, item) => {
+                return total + (item.price - item.price * item.discount / 100) * item.quantity;
+            }, 0);
 
-            const allExistItem = results.every(exist => exist);
-            if (!allExistItem) {
-                return new BadRequestError(`One or more voucher doesn't exist`)
+            // check exist list voucher
+            if (voucher && voucher.length != 0) {
+                for (let ele of voucher) {
+                    const existVoucher = await voucherModel.findById(ele);
+
+                    if (!existVoucher) {
+                        return {
+                            success: false,
+                            message: "voucher can not found"
+                        }
+                    }
+
+                    const currentTime = new Date().getTime()
+
+                    if (existVoucher.startDay.getTime() <= currentTime && existVoucher.endDay.getTime() >= currentTime) {
+                        if (existVoucher.customerUsed.some(user => user.toString() == user.toString())) {
+                            return {
+                                success: false,
+                                message: "voucher can only be used once"
+                            }
+                        }
+                    }
+                    else {
+                        if (existVoucher.startDay.getTime() > currentTime) {
+                            return {
+                                success: false,
+                                message: "voucher cannot be used yet"
+                            }
+                        }
+
+                        if (existVoucher.endDay.getTime() < currentTime) {
+                            return {
+                                success: false,
+                                message: "voucher expires"
+                            }
+                        }
+                    }
+                }
+
+                if (user) {
+                    for (const item of voucher) {
+                        let check = await voucherService.checkVoucher(item, this.user)
+                        let { value, type } = (check.success) ? check.voucher : {}
+
+                        if (type === 'chain') {
+                            let res = await voucherService.confirmVoucher(item, this.user)
+                            if (!res.success) {
+                                return next(res)
+                            }
+                            let { value, type } = (res.success) ? res.voucher : {}
+
+                            if (total - value < total * 0.5) {
+                                break
+                            }
+                            total -= value
+                        }
+                    }
+
+                    for (const item of voucher) {
+                        let check = await voucherService.checkVoucher(item, this.user)
+                        let { value, type } = (check.success) ? check.voucher : {}
+
+                        if (type === 'trade') {
+                            let res = await voucherService.confirmVoucher(item, this.user)
+                            let { value, type } = (res.success) ? res.voucher : {}
+                            if (total - (total * value) / 100 < totalPrice * 0.5) {
+                                break
+                            }
+                            total -= (total * value) / 100
+                        }
+                    }
+                }
             }
 
             const order = new orderModel({
@@ -43,7 +106,8 @@ class OrdersServices {
                 "paymentStatus": paymentStatus,
                 "paymentMethod": paymentMethod,
                 "deliveryStatus": deliveryStatus,
-                "note": note
+                "note": note,
+                "total": total
             })
 
             const savedOrder = await order.save()
@@ -90,7 +154,7 @@ class OrdersServices {
                 }
 
                 if (order.deliveryStatus == 'shipping') {
-                    if (deliveryStatus != 'success'&&deliveryStatus != 'fail') {
+                    if (deliveryStatus != 'success' && deliveryStatus != 'fail') {
                         return {
                             success: false,
                             message: "wrong delivery route"
@@ -98,7 +162,7 @@ class OrdersServices {
                     }
                 }
 
-                if (order.deliveryStatus == 'systemCancel'||order.deliveryStatus == 'customerCancel'||order.deliveryStatus == 'success'||order.deliveryStatus == 'fail') {
+                if (order.deliveryStatus == 'systemCancel' || order.deliveryStatus == 'customerCancel' || order.deliveryStatus == 'success' || order.deliveryStatus == 'fail') {
                     if (deliveryStatus != order.deliveryStatus) {
                         return {
                             success: false,
@@ -120,7 +184,7 @@ class OrdersServices {
         }
     }
 
-    static changeStatus = async ({ id }, {deliveryStatus}) => {
+    static changeStatus = async ({ id }, { deliveryStatus }) => {
         try {
             const existOrder = await orderModel.findById(id)
             if (!existOrder) {
@@ -129,7 +193,7 @@ class OrdersServices {
                     message: "Order don't exist"
                 }
             }
-            
+
             if (existOrder.deliveryStatus == 'pending') {
                 if (deliveryStatus != 'confirmed' && deliveryStatus != 'systemCancel' && deliveryStatus != 'customerCancel') {
                     return {
@@ -158,7 +222,7 @@ class OrdersServices {
             }
 
             if (existOrder.deliveryStatus == 'shipping') {
-                if (deliveryStatus != 'success'&&deliveryStatus != 'fail') {
+                if (deliveryStatus != 'success' && deliveryStatus != 'fail') {
                     return {
                         success: false,
                         message: "wrong delivery route"
@@ -166,7 +230,7 @@ class OrdersServices {
                 }
             }
 
-            if (existOrder.deliveryStatus == 'systemCancel'||existOrder.deliveryStatus == 'customerCancel'||existOrder.deliveryStatus == 'success'||existOrder.deliveryStatus == 'fail') {
+            if (existOrder.deliveryStatus == 'systemCancel' || existOrder.deliveryStatus == 'customerCancel' || existOrder.deliveryStatus == 'success' || existOrder.deliveryStatus == 'fail') {
                 if (deliveryStatus != existOrder.deliveryStatus) {
                     return {
                         success: false,

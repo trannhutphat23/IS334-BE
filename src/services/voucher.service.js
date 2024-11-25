@@ -231,7 +231,7 @@ class VouchersService {
         }
     }
 
-    static checkStatusVoucher = async ({id}) => {
+    static checkStatusVoucher = async ({ id }) => {
         try {
             const voucher = await voucherModel.findById(id)
 
@@ -260,6 +260,116 @@ class VouchersService {
                             message: "expire"
                         }
                     }
+                }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
+    static getTotalUsedVouchers = async ({ userId, vouchers, total }) => {
+        try {
+            const user = await userModel.findById(userId)
+
+            if (!user) {
+                return {
+                    success: false,
+                    message: "wrong user"
+                }
+            }
+
+            for (let ele of vouchers) {
+                const existVoucher = await voucherModel.findById(ele);
+
+                if (!existVoucher) {
+                    return {
+                        success: false,
+                        message: "voucher can not found"
+                    }
+                }
+
+                const currentTime = new Date().getTime()
+
+                if (existVoucher.startDay.getTime() <= currentTime && existVoucher.endDay.getTime() >= currentTime) {
+                    if (existVoucher.customerUsed.some(u => u.toString() == userId.toString())) {
+                        return {
+                            success: false,
+                            message: "voucher can only be used once"
+                        }
+                    }
+                }
+                else {
+                    if (existVoucher.startDay.getTime() > currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher cannot be used yet"
+                        }
+                    }
+
+                    if (existVoucher.endDay.getTime() < currentTime) {
+                        return {
+                            success: false,
+                            message: "voucher expires"
+                        }
+                    }
+                }
+
+            }
+
+            const totalPrice = total
+            let isOverHalfTotal = false
+
+            for (const item of vouchers) {
+                let check = await this.checkVoucher(item, userId)
+                // console.log(check, 'heh')
+                
+                if (check.success) {
+                    let { type } = check.voucher
+
+                    if (type === 'chain') {
+                        let value = check.voucher.value
+
+                        if (total - value < totalPrice * 0.5) {
+                            isOverHalfTotal = true
+                        }
+
+                        total -= value
+                    }
+                }
+            }
+
+            for (const item of vouchers) {
+                let check = await this.checkVoucher(item, user)
+
+                if (check.success) {
+                    let { type } = check.voucher
+
+                    if (type === 'trade') {
+                        let value = check.voucher.value
+
+                        if (total - (total * value) / 100 < totalPrice * 0.5) {
+                            isOverHalfTotal = true
+                        }
+
+                        total -= (total * value) / 100
+                    }
+                }
+            }
+
+            if(isOverHalfTotal){
+                return {
+                    success: false,
+                    message: "over half",
+                    total: total
+                }
+            }
+            else{
+                return {
+                    success: true,
+                    total: total
                 }
             }
         } catch (error) {

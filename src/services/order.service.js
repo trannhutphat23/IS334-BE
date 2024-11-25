@@ -27,6 +27,7 @@ class OrdersServices {
             let totalPrice = total
 
             // check exist list voucher
+            let usedVoucher = []
             if (user && voucher && voucher.length != 0) {
                 for (let ele of voucher) {
                     const existVoucher = await voucherModel.findById(ele);
@@ -66,7 +67,6 @@ class OrdersServices {
 
                 }
 
-                let usedVoucher = []
 
                 for (const item of voucher) {
                     let check = await voucherService.checkVoucher(item, user)
@@ -115,6 +115,10 @@ class OrdersServices {
                 }
             }
 
+            const voucherLeft = [
+                ...voucher.filter(item => !usedVoucher.includes(item)),
+            ]
+
             const order = new orderModel({
                 "user": user,
                 "items": items,
@@ -126,7 +130,7 @@ class OrdersServices {
                 "total": total
             })
 
-            // savedOrder.voucherLeft = []
+            savedOrder.voucherLeft = [...voucherLeft]
 
             const savedOrder = await order.save()
 

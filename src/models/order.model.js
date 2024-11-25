@@ -34,6 +34,9 @@ const orderSchema = new Schema(
                     type: Number,
                     required: true
                 },
+                note: {
+                    type: String,
+                },
             }
         ],
 
@@ -64,6 +67,15 @@ const orderSchema = new Schema(
             enum: ['pending', 'confirmed','systemCancel','customerCancel','doing', 'shipping', 'success','fail'],
         },
         note: {
+            type: String,
+        },
+        name: {
+            type: String,
+        },
+        address: {
+            type: String,
+        },
+        phone: {
             type: String,
         },
     },

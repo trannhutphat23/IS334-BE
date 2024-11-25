@@ -127,8 +127,6 @@ class VouchersService {
                 const currentTime = new Date().getTime()
 
                 if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
-                    console.log(id, userId)
-                    console.log(voucher.customerUsed)
 
                     if (voucher.customerUsed.some(user => user.toString() == userId.toString())) {
                         return {

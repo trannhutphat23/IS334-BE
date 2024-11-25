@@ -24,9 +24,10 @@ class OrdersServices {
             let total = items.reduce((total, item) => {
                 return total + (item.price - item.price * item.discount / 100) * item.quantity;
             }, 0);
+            let totalPrice = total
 
             // check exist list voucher
-            if (voucher && voucher.length != 0) {
+            if (user && voucher && voucher.length != 0) {
                 for (let ele of voucher) {
                     const existVoucher = await voucherModel.findById(ele);
 
@@ -40,7 +41,7 @@ class OrdersServices {
                     const currentTime = new Date().getTime()
 
                     if (existVoucher.startDay.getTime() <= currentTime && existVoucher.endDay.getTime() >= currentTime) {
-                        if (existVoucher.customerUsed.some(user => user.toString() == user.toString())) {
+                        if (existVoucher.customerUsed.some(u => u.toString() == user.toString())) {
                             return {
                                 success: false,
                                 message: "voucher can only be used once"
@@ -62,39 +63,38 @@ class OrdersServices {
                             }
                         }
                     }
+
                 }
 
-                if (user) {
-                    for (const item of voucher) {
-                        let check = await voucherService.checkVoucher(item, this.user)
-                        let { value, type } = (check.success) ? check.voucher : {}
+                for (const item of voucher) {
+                    let check = await voucherService.checkVoucher(item, user)
+                    let { value, type } = (check) ? check.voucher : {}
 
-                        if (type === 'chain') {
-                            let res = await voucherService.confirmVoucher(item, this.user)
-                            if (!res.success) {
-                                return next(res)
-                            }
-                            let { value, type } = (res.success) ? res.voucher : {}
+                    if (type === 'chain') {
+                        let res = await voucherService.confirmVoucher(item, user)
+                        let { value, type } = (res.success) ? res.voucher : {}
 
-                            if (total - value < total * 0.5) {
-                                break
-                            }
-                            total -= value
+                        if (total - value < totalPrice * 0.5) {
+                            break
                         }
+                        total -= value
                     }
+                }
 
-                    for (const item of voucher) {
-                        let check = await voucherService.checkVoucher(item, this.user)
-                        let { value, type } = (check.success) ? check.voucher : {}
+                for (const item of voucher) {
+                    let check = await voucherService.checkVoucher(item, user)
+                    let { value, type } = (check) ? check.voucher : {}
 
-                        if (type === 'trade') {
-                            let res = await voucherService.confirmVoucher(item, this.user)
-                            let { value, type } = (res.success) ? res.voucher : {}
-                            if (total - (total * value) / 100 < totalPrice * 0.5) {
-                                break
-                            }
-                            total -= (total * value) / 100
+                    console.log(total, "hehe")
+
+                    if (type === 'trade') {
+                        let res = await voucherService.confirmVoucher(item, user)
+                        let { value, type } = (res.success) ? res.voucher : {}
+
+                        if (total - (total * value) / 100 < totalPrice * 0.5) {
+                            break
                         }
+                        total -= (total * value) / 100
                     }
                 }
             }

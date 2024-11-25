@@ -82,7 +82,7 @@ class CartService {
         }
     }
 
-    static addItemCart = async ({ userId, productId, size, quantity }) => {
+    static addItemCart = async ({ userId, productId, size, quantity, note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -146,7 +146,8 @@ class CartService {
                             quantity,
                             size,
                             "price": p.price,
-                            "discount": product.discount
+                            "discount": product.discount,
+                            "note": note
                         })
                     }
                 })
@@ -242,7 +243,7 @@ class CartService {
         }
     }
 
-    static addItemCartNoLogin = async ({ cartId, productId, size, quantity }) => {
+    static addItemCartNoLogin = async ({ cartId, productId, size, quantity,note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -294,7 +295,8 @@ class CartService {
                             quantity,
                             size,
                             "price": p.price,
-                            "discount": product.discount
+                            "discount": product.discount,
+                            note
                         })
                     }
                 })

@@ -68,7 +68,10 @@ class OrdersServices {
 
                 for (const item of voucher) {
                     let check = await voucherService.checkVoucher(item, user)
-                    let { value, type } = (check) ? check.voucher : {}
+                    
+                    let { value, type } = (check.success) ? check.voucher : {}
+
+                    console.log(check, value, 'hehe')
 
                     if (type === 'chain') {
                         let res = await voucherService.confirmVoucher(item, user)
@@ -83,9 +86,9 @@ class OrdersServices {
 
                 for (const item of voucher) {
                     let check = await voucherService.checkVoucher(item, user)
-                    let { value, type } = (check) ? check.voucher : {}
+                    let { value, type } = (check.success) ? check.voucher : {}
 
-                    console.log(total, "hehe")
+                    console.log(check, value, 'haha')
 
                     if (type === 'trade') {
                         let res = await voucherService.confirmVoucher(item, user)

@@ -199,6 +199,7 @@ class VouchersService {
                     }
                     else {
                         return {
+                            success: true,
                             voucher: {
                                 type: voucher.type,
                                 value: voucher.value

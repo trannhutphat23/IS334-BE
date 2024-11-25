@@ -125,6 +125,7 @@ class CartService {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {
                         item.quantity += quantity
+                        if(note){item.note = note}
                         product.type.forEach(p => {
                             if (p.size == size) {
                                 item.price = p.price
@@ -198,6 +199,7 @@ class CartService {
                     cart.items.forEach(item => {
                         if (item.product == productId && item.size == size) {
                             if (item.quantity > quantity) {
+                                if(note){item.note = note}
                                 item.quantity -= quantity
                             }
                         }

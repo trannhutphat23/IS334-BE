@@ -66,20 +66,27 @@ class OrdersServices {
 
                 }
 
+                let usedVoucher = []
+
                 for (const item of voucher) {
                     let check = await voucherService.checkVoucher(item, user)
                     
-                    let { value, type } = (check.success) ? check.voucher : {}
+                    let { type } = (check.success) ? check.voucher : {}
 
                     console.log(check, value, 'hehe')
 
                     if (type === 'chain') {
+                        let val = check.voucher.value
+
+                        if (total - val < totalPrice * 0.5) {
+                            break
+                        }
+
                         let res = await voucherService.confirmVoucher(item, user)
                         let { value, type } = (res.success) ? res.voucher : {}
 
-                        if (total - value < totalPrice * 0.5) {
-                            break
-                        }
+                        usedVoucher.push(item)
+
                         total -= value
                     }
                 }
@@ -91,12 +98,17 @@ class OrdersServices {
                     console.log(check, value, 'haha')
 
                     if (type === 'trade') {
+                        let val = check.voucher.value
+
+                        if (total - (total * val) / 100 < totalPrice * 0.5) {
+                            break
+                        }
+
                         let res = await voucherService.confirmVoucher(item, user)
                         let { value, type } = (res.success) ? res.voucher : {}
 
-                        if (total - (total * value) / 100 < totalPrice * 0.5) {
-                            break
-                        }
+                        usedVoucher.push(item)
+
                         total -= (total * value) / 100
                     }
                 }
@@ -105,7 +117,7 @@ class OrdersServices {
             const order = new orderModel({
                 "user": user,
                 "items": items,
-                "voucher": voucher,
+                "voucher": usedVoucher,
                 "paymentStatus": paymentStatus,
                 "paymentMethod": paymentMethod,
                 "deliveryStatus": deliveryStatus,

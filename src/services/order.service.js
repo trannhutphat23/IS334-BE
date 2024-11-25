@@ -70,46 +70,47 @@ class OrdersServices {
 
                 for (const item of voucher) {
                     let check = await voucherService.checkVoucher(item, user)
-                    
-                    let { type } = (check.success) ? check.voucher : {}
 
-                    console.log(check, value, 'hehe')
+                    if (check.success) {
+                        let { type } = check.voucher
 
-                    if (type === 'chain') {
-                        let val = check.voucher.value
+                        if (type === 'chain') {
+                            let val = check.voucher.value
 
-                        if (total - val < totalPrice * 0.5) {
-                            break
+                            if (total - val < totalPrice * 0.5) {
+                                break
+                            }
+
+                            let res = await voucherService.confirmVoucher(item, user)
+                            let { value } = (res.success) ? res.voucher : {}
+
+                            usedVoucher.push(item)
+
+                            total -= value
                         }
-
-                        let res = await voucherService.confirmVoucher(item, user)
-                        let { value, type } = (res.success) ? res.voucher : {}
-
-                        usedVoucher.push(item)
-
-                        total -= value
                     }
                 }
 
                 for (const item of voucher) {
                     let check = await voucherService.checkVoucher(item, user)
-                    let { value, type } = (check.success) ? check.voucher : {}
 
-                    console.log(check, value, 'haha')
+                    if (check.success) {
+                        let { type } = check.voucher
 
-                    if (type === 'trade') {
-                        let val = check.voucher.value
+                        if (type === 'trade') {
+                            let val = check.voucher.value
 
-                        if (total - (total * val) / 100 < totalPrice * 0.5) {
-                            break
+                            if (total - (total * val) / 100 < totalPrice * 0.5) {
+                                break
+                            }
+
+                            let res = await voucherService.confirmVoucher(item, user)
+                            let { value } = (res.success) ? res.voucher : {}
+
+                            usedVoucher.push(item)
+
+                            total -= (total * value) / 100
                         }
-
-                        let res = await voucherService.confirmVoucher(item, user)
-                        let { value, type } = (res.success) ? res.voucher : {}
-
-                        usedVoucher.push(item)
-
-                        total -= (total * value) / 100
                     }
                 }
             }
@@ -124,6 +125,8 @@ class OrdersServices {
                 "note": note,
                 "total": total
             })
+
+            // savedOrder.voucherLeft = []
 
             const savedOrder = await order.save()
 

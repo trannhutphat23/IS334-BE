@@ -130,9 +130,9 @@ class OrdersServices {
                 "total": total
             })
 
-            savedOrder.voucherLeft = [...voucherLeft]
-
             const savedOrder = await order.save()
+            
+            savedOrder.voucherLeft = [...voucherLeft]
 
             return savedOrder
         } catch (error) {

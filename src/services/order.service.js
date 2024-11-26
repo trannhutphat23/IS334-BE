@@ -10,7 +10,7 @@ const _ = require('lodash');
 const orderModel = require('../models/order.model')
 class OrdersServices {
 
-    static addOrder = async ({ user, items, voucher, paymentStatus, paymentMethod, deliveryStatus, note }) => {
+    static addOrder = async ({ user, items, voucher, paymentStatus, paymentMethod, deliveryStatus, note, name, address, phone }) => {
         // method is bank and cast
         try {
             // check exist user
@@ -115,9 +115,12 @@ class OrdersServices {
                 }
             }
 
-            const voucherLeft = [
-                ...voucher.filter(item => !usedVoucher.includes(item)),
-            ]
+            let voucherLeft = []
+            if (voucher) {
+                voucherLeft = [
+                    ...voucher.filter(item => !usedVoucher.includes(item))
+                ]
+            }
 
             const order = new orderModel({
                 "user": user,
@@ -127,11 +130,14 @@ class OrdersServices {
                 "paymentMethod": paymentMethod,
                 "deliveryStatus": deliveryStatus,
                 "note": note,
-                "total": total
+                "total": total,
+                name,
+                address,
+                phone
             })
 
             const savedOrder = await order.save()
-            
+
             savedOrder.voucherLeft = [...voucherLeft]
 
             return savedOrder

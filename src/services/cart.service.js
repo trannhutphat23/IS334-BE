@@ -166,6 +166,7 @@ class CartService {
 
     static deleteItemCart = async ({ userId, productId, size, quantity }) => {
         try {
+            console.log(userId)
             const user = await userModel.findById(userId)
             const product = await productModel.findById(productId)
 

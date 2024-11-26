@@ -33,6 +33,9 @@ const cartSchema = new Schema(
                     type: Number,
                     required: true
                 },
+                note: {
+                    type: String,
+                },
             }
         ],
         total: {

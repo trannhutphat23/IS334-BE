@@ -64,6 +64,14 @@ class VouchersController {
             next(error)
         }
     }
+
+    getTotalUsedVouchers = async (req, res, next) => {
+        try {
+            return res.status(201).json(await VouchersService.getTotalUsedVouchers(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new VouchersController()

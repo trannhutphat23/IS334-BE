@@ -82,7 +82,7 @@ class CartService {
         }
     }
 
-    static addItemCart = async ({ userId, productId, size, quantity }) => {
+    static addItemCart = async ({ userId, productId, size, quantity, note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -125,6 +125,7 @@ class CartService {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {
                         item.quantity += quantity
+                        if(note){item.note = note}
                         product.type.forEach(p => {
                             if (p.size == size) {
                                 item.price = p.price
@@ -146,7 +147,8 @@ class CartService {
                             quantity,
                             size,
                             "price": p.price,
-                            "discount": product.discount
+                            "discount": product.discount,
+                            "note": note
                         })
                     }
                 })
@@ -198,6 +200,7 @@ class CartService {
                     cart.items.forEach(item => {
                         if (item.product == productId && item.size == size) {
                             if (item.quantity > quantity) {
+                                if(note){item.note = note}
                                 item.quantity -= quantity
                             }
                         }
@@ -243,7 +246,7 @@ class CartService {
         }
     }
 
-    static addItemCartNoLogin = async ({ cartId, productId, size, quantity }) => {
+    static addItemCartNoLogin = async ({ cartId, productId, size, quantity,note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -295,7 +298,8 @@ class CartService {
                             quantity,
                             size,
                             "price": p.price,
-                            "discount": product.discount
+                            "discount": product.discount,
+                            note
                         })
                     }
                 })

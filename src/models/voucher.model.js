@@ -24,7 +24,7 @@ const voucherSchema = new Schema(
             required: true,
         },
 
-        //chain: tien, trade: %
+        //chain: amount, trade: percent
         type: {
             type: String,
             enum: ['chain', 'trade'],

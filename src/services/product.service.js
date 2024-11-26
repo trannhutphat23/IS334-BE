@@ -254,6 +254,7 @@ class ProductService {
                         _id: "$category",
                         products: {
                             $push: {
+                                _id: "$_id",
                                 name: "$name",
                                 image: "$image",
                                 description: "$description",

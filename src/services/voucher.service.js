@@ -281,10 +281,8 @@ class VouchersService {
                 }
             }
 
-            let newVouchers = []
-
             for (let ele of vouchers) {
-                const existVoucher = await voucherModel.findOne({ name: ele });
+                const existVoucher = await voucherModel.findById(ele);
 
                 if (!existVoucher) {
                     return {
@@ -321,19 +319,13 @@ class VouchersService {
 
             }
 
-            for (const item of vouchers) {
-                const voucher = await voucherModel.findOne({ name: item })
-
-                newVouchers.push(voucher.id)
-            }
-
             const totalPrice = total
             let isOverHalfTotal = false
 
-            for (const item of newVouchers) {
+            for (const item of vouchers) {
                 let check = await this.checkVoucher(item, userId)
                 // console.log(check, 'heh')
-
+                
                 if (check.success) {
                     let { type } = check.voucher
 
@@ -349,7 +341,7 @@ class VouchersService {
                 }
             }
 
-            for (const item of newVouchers) {
+            for (const item of vouchers) {
                 let check = await this.checkVoucher(item, user)
 
                 if (check.success) {
@@ -367,19 +359,38 @@ class VouchersService {
                 }
             }
 
-            if (isOverHalfTotal) {
+            if(isOverHalfTotal){
                 return {
                     success: false,
                     message: "over half",
                     total: total
                 }
             }
-            else {
+            else{
                 return {
                     success: true,
                     total: total
                 }
             }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
+    static vouchersToId = async ({ vouchers }) => {
+        try {
+            const newVouchers = []
+            
+            for (const item of vouchers) {
+                const existVoucher = await voucherModel.findOne({name: item});
+
+                newVouchers.push(existVoucher.id)
+            }
+
+            return newVouchers
         } catch (error) {
             return {
                 success: false,

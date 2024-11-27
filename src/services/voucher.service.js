@@ -231,7 +231,7 @@ class VouchersService {
         }
     }
 
-    static checkStatusVoucher = async ({ id }) => {
+    static checkStatusVoucher = async ({ id, userId }) => {
         try {
             const voucher = await voucherModel.findById(id)
 
@@ -239,10 +239,18 @@ class VouchersService {
                 const currentTime = new Date().getTime()
 
                 if (voucher.startDay.getTime() <= currentTime && voucher.endDay.getTime() >= currentTime) {
-                    return {
-                        voucher: {
-                            success: true,
-                            message: "available"
+                    if (voucher.customerUsed.some(user => user.toString() == userId.toString())) {
+                        return {
+                            success: false,
+                            message: "voucher can only be used once"
+                        }
+                    }
+                    else {
+                        return {
+                            voucher: {
+                                success: true,
+                                message: "available"
+                            }
                         }
                     }
                 }

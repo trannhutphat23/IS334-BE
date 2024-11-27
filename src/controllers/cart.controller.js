@@ -56,7 +56,7 @@ class CartController {
             next(error)
         }
     }
-
+    
     getCartById = async (req, res, next) => {
         try {
             return res.status(201).json(await CartService.getCartById(req.params))
@@ -64,10 +64,26 @@ class CartController {
             next(error)
         }
     }
-
+    
     updateQuantity = async (req, res, next) => {
         try {
             return res.status(201).json(await CartService.updateQuantity(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    clearCartByUserId = async (req, res, next) => {
+        try {
+            return res.status(201).json(await CartService.clearCartByUserId(req.params))
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    clearCartById = async (req, res, next) => {
+        try {
+            return res.status(201).json(await CartService.clearCartById(req.params))
         } catch (error) {
             next(error)
         }

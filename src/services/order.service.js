@@ -332,7 +332,7 @@ class OrdersServices {
 
     static getOrderID = async ({ id }) => {
         try {
-            const existOrder = await Orders.findById(id);
+            const existOrder = await Orders.findById(id).populate("voucher").populate('items.product');
             if (!existOrder) {
                 return {
                     success: false,
@@ -340,7 +340,7 @@ class OrdersServices {
                 }
             }
 
-            return (await existOrder.populate('voucher')).populate('items.item');
+            return existOrder
         } catch (error) {
             return {
                 success: false,
@@ -367,7 +367,7 @@ class OrdersServices {
         }
     }
 
-    static paymentOrder = async ({ amount, orderInfo, items, voucher, userId, method, from }) => {
+    static paymentOrder = async ({ amount, orderInfo, items, voucher, userId, method, from, name, phone, address, note }) => {
         try {
             // test momo:
             // NGUYEN VAN A
@@ -379,13 +379,24 @@ class OrdersServices {
             var accessKey = 'F8BBA842ECF85';
             var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';//key để test // không đổi
             var partnerCode = 'MOMO';
-            var redirectUrl = 'http://localhost:5173/hoa-don'; // Link chuyển hướng tới sau khi thanh toán hóa đơn
-            var ipnUrl = 'http://localhost:5173/hoa-don';   //trang truy vấn kết quả, để trùng với redirect
+            var redirectUrl = 'http://localhost:3000/checkout'; // Link chuyển hướng tới sau khi thanh toán hóa đơn
+            var ipnUrl = 'http://localhost:3000/checkout';   //trang truy vấn kết quả, để trùng với redirect
             var requestType = "payWithMethod";
             // var amount = '1000'; // Lượng tiền của hóa  <lượng tiền test ko dc cao quá>
             var orderId = partnerCode + new Date().getTime(); // mã Đơn hàng, có thể đổi
             var requestId = orderId;
-            var extraData = `deliveryFee-${deliveryFee}+items-${JSON.stringify(items)}+voucher-${voucher}+customer-${JSON.stringify(customer)}+userId-${userId}+method-${method}+from-${from}`; // đây là data thêm của doanh nghiệp (địa chỉ, mã COD,....)
+            // var extraData = `items-${JSON.stringify(items)}+voucher-${voucher}+userId-${userId}+method-${method}+from-${from}+name-${name}+phone-${phone}+address-${address}`; // đây là data thêm của doanh nghiệp (địa chỉ, mã COD,....)
+            var extraData = encodeURIComponent(
+                JSON.stringify({
+                    items: items,
+                    voucher: voucher,
+                    userId: userId,
+                    name:name,
+                    phone: phone,
+                    address: address,
+                    note: note
+                })
+            )
             var paymentCode = 'T8Qii53fAXyUftPV3m9ysyRhEanUs9KlOPfHgpMR0ON50U10Bh+vZdpJU7VY4z+Z2y77fJHkoDc69scwwzLuW5MzeUKTwPo3ZMaB29imm6YulqnWfTkgzqRaion+EuD7FN9wZ4aXE1+mRt0gHsU193y+yxtRgpmY7SDMU9hCKoQtYyHsfFR5FUAOAKMdw2fzQqpToei3rnaYvZuYaxolprm9+/+WIETnPUDlxCYOiw7vPeaaYQQH0BF0TxyU3zu36ODx980rJvPAgtJzH1gUrlxcSS1HQeQ9ZaVM1eOK/jl8KJm6ijOwErHGbgf/hVymUQG65rHU2MWz9U8QUjvDWA==';
             var orderGroupId = '';
             var autoCapture = true;

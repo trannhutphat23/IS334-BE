@@ -64,6 +64,14 @@ class CartController {
             next(error)
         }
     }
+
+    updateQuantity = async (req, res, next) => {
+        try {
+            return res.status(201).json(await CartService.updateQuantity(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new CartController()

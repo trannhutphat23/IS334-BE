@@ -388,6 +388,63 @@ class CartService {
             }
         }
     }
+<<<<<<< Updated upstream
+=======
+
+    static clearCartById = async ({ id }) => {
+        try {
+            const cart = await cartModel.findById(id).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            cart.items = []
+
+            cart.save()
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
+    static clearCartByUserId = async ({ userId }) => {
+        try {
+            const cart = await cartModel.findOne({userId: userId}).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            cart.items = []
+
+            cart.save()
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+>>>>>>> Stashed changes
 }
 
 module.exports = CartService;

@@ -69,6 +69,9 @@ router.delete('/carts/deleteItemCartNoLogin', CartController.deleteItemCartNoLog
 router.get('/carts', CartController.getCart)
 router.get('/carts/getCartByUserId/:userId', CartController.getCartByUserId)
 router.get('/carts/getCartById/:id', CartController.getCartById)
+router.delete('/carts/clearCartById/:id', CartController.clearCartById)
+router.delete('/carts/clearCartByUserId/:id', CartController.clearCartByUserId)
+
 
 //admin
 router.get('/users', AccessController.getUsers)

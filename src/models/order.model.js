@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
+const userModel = require('./user.model');
 const Schema = mongoose.Schema;
+
 
 const DOCUMENT_NAME = 'Order'
 const COLLECTION_NAME = 'Orders'
@@ -32,6 +34,9 @@ const orderSchema = new Schema(
                     type: Number,
                     required: true
                 },
+                note: {
+                    type: String,
+                },
             }
         ],
 
@@ -44,21 +49,35 @@ const orderSchema = new Schema(
         ],
         total: {
             type: Number,
-            required: true,
             min: 0,
         },
         paymentStatus: {
             type: String,
+            enum: ['paid', 'unpaid'],
             required: true,
         },
         paymentMethod: {
             type: String,
+            enum: ['momo', 'cod'],
             required: true,
         },
         deliveryStatus: {
             type: String,
             required: true,
             enum: ['pending', 'confirmed','systemCancel','customerCancel','doing', 'shipping', 'success','fail'],
+            default: "pending"
+        },
+        note: {
+            type: String,
+        },
+        name: {
+            type: String,
+        },
+        address: {
+            type: String,
+        },
+        phone: {
+            type: String,
         },
     },
     {

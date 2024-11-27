@@ -9,7 +9,7 @@ multer({
 
 const ProductController = require('../../controllers/product.controller')
 const VouchersController = require('../../controllers/voucher.controller')
-const OrdersController = require('../../controllers/order.controller')
+const OrderController = require('../../controllers/order.controller')
 const CartController = require('../../controllers/cart.controller')
 const AccessController = require('../../controllers/access.controller')
 const AuthController = require('../../controllers/auth.controller')
@@ -31,6 +31,7 @@ router.post('/contact', AccessController.contact)
 
 //product
 router.get('/products', ProductController.getProduct)
+router.get('/products/categories', ProductController.listCategoryOfProduct)
 router.get('/products/:id', ProductController.getProductID)
 router.post('/products', upload.single('image'), ProductController.addProduct)
 router.put('/products/:id', upload.single('image'), ProductController.updateProduct)
@@ -39,24 +40,25 @@ router.delete('/products/:id', ProductController.deleteProduct)
 //vouchers
 router.post('/vouchers', VouchersController.addVoucher)
 router.get('/vouchers', VouchersController.getVoucher)
-router.get('/vouchers/:name', VouchersController.getVoucherByName)
+// router.get('/vouchers/:name', VouchersController.getVoucherByName)
 router.get('/vouchers/:id', VouchersController.getVoucherID)
 router.put('/vouchers/:id', VouchersController.updateVoucher)
 router.delete('/vouchers/:id', VouchersController.deleteVoucher)
 router.post('/vouchers/confirmVoucher', VouchersController.confirmVoucher)
+router.post('/vouchers/checkVoucher', VouchersController.checkVoucher)
+router.post('/vouchers/getTotalUsedVouchers', VouchersController.getTotalUsedVouchers)
+router.post('/vouchers/vouchersToId', VouchersController.vouchersToId)
 
 //orders
-router.post('/orders', OrdersController.addOrder)
-router.post('/orders/noAccount/:itemId', OrdersController.addOrderNoAccount)
-router.get('/orders', OrdersController.getOrder)
-router.get('/orders/:id', OrdersController.getOrderID)
-router.get('/orders/users/:userId', OrdersController.getOrdersByUserId)
-// router.get('/orders/shipping/:userId', OrdersController.getOrdersShipping)
-router.put('/orders/:id', OrdersController.updateOrder)
-router.delete('/orders/:id', OrdersController.deleteOrder)
-router.delete('/ordersAnonymus', OrdersController.deleteOrderNoAccount)
-router.post('/orders/payment', OrdersController.paymentOrder)
-router.put('/changeStatus/:id', OrdersController.changeStatus)
+router.post('/orders', OrderController.addOrder)
+router.get('/orders', OrderController.getOrder)
+router.get('/orders/:id', OrderController.getOrderID)
+router.get('/orders/users/:userId', OrderController.getOrdersByUserId)
+router.put('/orders/:id', OrderController.updateOrder)
+router.delete('/orders/:id', OrderController.deleteOrder)
+router.delete('/ordersAnonymus', OrderController.deleteOrderNoAccount)
+router.post('/orders/payment', OrderController.paymentOrder)
+router.put('/orders/changeStatus/:id', OrderController.changeStatus)
 
 //cart
 router.post('/carts/addCart', CartController.addCart)
@@ -67,8 +69,12 @@ router.delete('/carts/deleteItemCartNoLogin', CartController.deleteItemCartNoLog
 router.get('/carts', CartController.getCart)
 router.get('/carts/getCartByUserId/:userId', CartController.getCartByUserId)
 router.get('/carts/getCartById/:id', CartController.getCartById)
+router.put('/carts/updateQuantity', CartController.updateQuantity)
+router.delete('/carts/clearCartById/:id', CartController.clearCartById)
+router.delete('/carts/clearCartByUserId/:id', CartController.clearCartByUserId)
 
 //admin
 router.get('/users', AccessController.getUsers)
+router.get('/users/:id', AccessController.getUserById)
 
 module.exports = router

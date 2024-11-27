@@ -72,6 +72,14 @@ class AccessController {
             next(error)
         }
     }
+
+    getUserById = async (req, res , next) => {
+        try {
+            return res.status(201).json(await AccessService.getUserById(req.params))
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new AccessController()

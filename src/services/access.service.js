@@ -53,6 +53,10 @@ class AccessService {
                 "password": passwordHash,
             })
 
+            const payload = {id: newUser._id, email, phone};
+
+            const accessToken = AuthService.createAccessToken(payload);
+
             if (email) {
                 var transporter = nodemailer.createTransport({
                     service: 'gmail',
@@ -100,7 +104,8 @@ class AccessService {
             }
             return {
                 success: true,
-                user: getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: newUser})
+                user: getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: newUser}),
+                accessToken: accessToken
             }
        } catch (error) {
             // Validation Error
@@ -116,7 +121,7 @@ class AccessService {
                 }
             }
             // Internal Server Error
-            throw new InternalServerError(error.message)
+            return new InternalServerError(error.message)
        }
     }
     // [POST]/v1/api/login
@@ -417,31 +422,21 @@ class AccessService {
 
     static getUsers = async () => {
         try {
-            const customers = await CustomerModel.find({})
-            const orders = await ordersModel.find({}).populate('user')
-            let customerTotals = customers.map((customer) => {
-                return {
-                    customer,
-                    totalIntoMoney: 0,
-                }
-            })
-            let customerLookup = {};
-            customerTotals.forEach(customer => {
-                customerLookup[customer.customer.email] = customer;
-            });
-
-            orders.forEach(order => {
-                let customerEmail = order.customer.email;
-                if (customerLookup.hasOwnProperty(customerEmail)) {
-                    customerLookup[customerEmail].totalIntoMoney += order.intoMoney;
-                }
-            });
-            return customerTotals;
+            const users = await userModel.find().lean()
+            
+            return users
         } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            }
+            return new InternalServerError(error.message)
+        }
+    }
+
+    static getUserById = async ({id}) => {
+        try {
+            const user = await userModel.findById(id)
+            
+            return user
+        } catch (error) {
+            return new InternalServerError(error.message)
         }
     }
 }

@@ -82,7 +82,7 @@ class CartService {
         }
     }
 
-    static addItemCart = async ({ userId, productId, size, quantity }) => {
+    static addItemCart = async ({ userId, productId, size, quantity, note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -125,6 +125,7 @@ class CartService {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {
                         item.quantity += quantity
+                        if(note){item.note = note}
                         product.type.forEach(p => {
                             if (p.size == size) {
                                 item.price = p.price
@@ -146,7 +147,8 @@ class CartService {
                             quantity,
                             size,
                             "price": p.price,
-                            "discount": product.discount
+                            "discount": product.discount,
+                            "note": note
                         })
                     }
                 })
@@ -166,6 +168,7 @@ class CartService {
 
     static deleteItemCart = async ({ userId, productId, size, quantity }) => {
         try {
+            console.log(userId)
             const user = await userModel.findById(userId)
             const product = await productModel.findById(productId)
 
@@ -197,6 +200,7 @@ class CartService {
                     cart.items.forEach(item => {
                         if (item.product == productId && item.size == size) {
                             if (item.quantity > quantity) {
+                                if(note){item.note = note}
                                 item.quantity -= quantity
                             }
                         }
@@ -242,7 +246,7 @@ class CartService {
         }
     }
 
-    static addItemCartNoLogin = async ({ cartId, productId, size, quantity }) => {
+    static addItemCartNoLogin = async ({ cartId, productId, size, quantity,note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -294,7 +298,8 @@ class CartService {
                             quantity,
                             size,
                             "price": p.price,
-                            "discount": product.discount
+                            "discount": product.discount,
+                            note
                         })
                     }
                 })
@@ -388,8 +393,6 @@ class CartService {
             }
         }
     }
-<<<<<<< Updated upstream
-=======
 
     static clearCartById = async ({ id }) => {
         try {
@@ -410,6 +413,34 @@ class CartService {
             cart.save()
 
             return cart
+
+    static updateQuantity = async ({userId, productIds, quantities}) => {
+        try {
+            const cart = await cartModel.findOne({ userId: { _id: userId } })
+            
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "Cart not found"
+                }
+            }
+
+            productIds.forEach((productId, index) => {
+                const quantity = quantities[index]
+                const item = cart.items.find(item => item.product._id.toString() === productId)
+
+                if (item) {
+                    item.quantity = quantity
+                }
+            })
+
+            await cart.save()
+
+            return {
+                success: true,
+                message: "Cart updated successfully",
+                cart
+            }
         } catch (error) {
             return {
                 success: false,
@@ -444,7 +475,6 @@ class CartService {
             }
         }
     }
->>>>>>> Stashed changes
 }
 
 module.exports = CartService;

@@ -52,7 +52,7 @@ class OrdersController {
 
     updateOrder = async (req, res, next) => {
         try {
-            return res.status(201).json(await OrdersServices.updateOrder(req.params))
+            return res.status(201).json(await OrdersServices.updateOrder(req.params, req.body))
         } catch (error) {
             next(error)
         }
@@ -75,7 +75,7 @@ class OrdersController {
     }
     changeStatus = async (req, res) => {
         try {
-            return res.status(201).json(await OrdersServices.changeStatus(req.params))
+            return res.status(201).json(await OrdersServices.changeStatus(req.params, req.body))
         } catch (error) {
             next(error)
         }

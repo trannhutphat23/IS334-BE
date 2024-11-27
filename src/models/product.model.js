@@ -39,7 +39,7 @@ const productSchema = new Schema(
         },
         category: {
             type: String,
-            enum: ["coffee", "tea", "smoothie"],
+            enum: ["hot coffee", "ice coffee", "hot tea", "ice tea", "snack"],
             required: true,
         },
         // by %

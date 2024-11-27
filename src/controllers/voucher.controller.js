@@ -1,4 +1,4 @@
-const VouchersService = require('../services/voucher.services')
+const VouchersService = require('../services/voucher.service')
 
 class VouchersController {
     addVoucher = async (req, res, next) => {
@@ -52,6 +52,30 @@ class VouchersController {
     confirmVoucher = async (req, res, next) => {
         try {
             return res.status(201).json(await VouchersService.confirmVoucher(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    checkVoucher = async (req, res, next) => {
+        try {
+            return res.status(201).json(await VouchersService.checkStatusVoucher(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+    
+    getTotalUsedVouchers = async (req, res, next) => {
+        try {
+            return res.status(201).json(await VouchersService.getTotalUsedVouchers(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    vouchersToId = async (req, res, next) => {
+        try {
+            return res.status(201).json(await VouchersService.vouchersToId(req.body))
         } catch (error) {
             next(error)
         }

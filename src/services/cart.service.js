@@ -125,7 +125,7 @@ class CartService {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {
                         item.quantity += quantity
-                        if(note){item.note = note}
+                        if (note) { item.note = note }
                         product.type.forEach(p => {
                             if (p.size == size) {
                                 item.price = p.price
@@ -200,7 +200,7 @@ class CartService {
                     cart.items.forEach(item => {
                         if (item.product == productId && item.size == size) {
                             if (item.quantity > quantity) {
-                                if(note){item.note = note}
+                                if (note) { item.note = note }
                                 item.quantity -= quantity
                             }
                         }
@@ -246,7 +246,7 @@ class CartService {
         }
     }
 
-    static addItemCartNoLogin = async ({ cartId, productId, size, quantity,note }) => {
+    static addItemCartNoLogin = async ({ cartId, productId, size, quantity, note }) => {
         try {
             const product = await productModel.findById(productId)
 
@@ -394,10 +394,37 @@ class CartService {
         }
     }
 
-    static updateQuantity = async ({userId, productIds, quantities}) => {
+    static clearCartById = async ({ id }) => {
+        try {
+            const cart = await cartModel.findById(id).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            cart.items = []
+
+            cart.save()
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
+    static updateQuantity = async ({ userId, productIds, quantities }) => {
         try {
             const cart = await cartModel.findOne({ userId: { _id: userId } })
-            
+
             if (!cart) {
                 return {
                     success: false,
@@ -425,7 +452,34 @@ class CartService {
             return {
                 success: false,
                 message: error.message
-            } 
+            }
+        }
+    }
+
+    static clearCartByUserId = async ({ userId }) => {
+        try {
+            const cart = await cartModel.findOne({ userId: userId }).populate({
+                path: "userId",
+                select: '_id name email address phone'
+            }).populate('items.product')
+
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "wrong cart"
+                }
+            }
+
+            cart.items = []
+
+            cart.save()
+
+            return cart
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
         }
     }
 }

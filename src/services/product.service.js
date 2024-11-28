@@ -78,9 +78,9 @@ class ProductService {
         try {
             const products = await productModel.find({}).populate('categoryId')
 
-            products.forEach(p => {
-                console.log('{id: ObjectId("' + p.id + '"), type:[' + p.type + '],')
-            })
+            // products.forEach(p => {
+            //     console.log('{id: ObjectId("' + p.id + '"), type:[' + p.type + ']},')
+            // })
 
             return products
         } catch (error) {

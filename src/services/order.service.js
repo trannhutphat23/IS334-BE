@@ -183,6 +183,10 @@ class OrdersServices {
 
                 if (order.deliveryStatus == 'shipping') {
                     if (deliveryStatus != 'success' && deliveryStatus != 'fail') {
+                        if (deliveryStatus == 'success') {
+                            order.paymentStatus = 'paid'
+                        }
+
                         return {
                             success: false,
                             message: "wrong delivery route"
@@ -251,6 +255,10 @@ class OrdersServices {
 
             if (existOrder.deliveryStatus == 'shipping') {
                 if (deliveryStatus != 'success' && deliveryStatus != 'fail') {
+                    if (deliveryStatus == 'success') {
+                        existOrder.paymentStatus = 'paid'
+                    }
+
                     return {
                         success: false,
                         message: "wrong delivery route"
@@ -391,7 +399,7 @@ class OrdersServices {
                     items: items,
                     voucher: voucher,
                     userId: userId,
-                    name:name,
+                    name: name,
                     phone: phone,
                     address: address,
                     note: note

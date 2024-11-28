@@ -183,13 +183,14 @@ class OrdersServices {
 
                 if (order.deliveryStatus == 'shipping') {
                     if (deliveryStatus != 'success' && deliveryStatus != 'fail') {
-                        if (deliveryStatus == 'success') {
-                            order.paymentStatus = 'paid'
-                        }
-
                         return {
                             success: false,
                             message: "wrong delivery route"
+                        }
+                    }
+                    else {
+                        if (deliveryStatus == 'success') {
+                            order.paymentStatus = 'paid'
                         }
                     }
                 }
@@ -255,13 +256,14 @@ class OrdersServices {
 
             if (existOrder.deliveryStatus == 'shipping') {
                 if (deliveryStatus != 'success' && deliveryStatus != 'fail') {
-                    if (deliveryStatus == 'success') {
-                        existOrder.paymentStatus = 'paid'
-                    }
-
                     return {
                         success: false,
                         message: "wrong delivery route"
+                    }
+                }
+                else {
+                    if (deliveryStatus == 'success') {
+                        existOrder.paymentStatus = 'paid'
                     }
                 }
             }

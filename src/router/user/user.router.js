@@ -81,6 +81,7 @@ router.get('/users/:id', AccessController.getUserById)
 //category
 router.get('/categories', CategoryController.getAllCategory)
 router.get('/categories/:id', CategoryController.getCategoryById)
+router.get('/categories/name/:name', CategoryController.getCategoryByName)
 router.post('/categories', CategoryController.addCategory)
 router.put('/categories/:id', CategoryController.updateCategory)
 router.delete('/categories/:id', CategoryController.deleteCategory)

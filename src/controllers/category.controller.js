@@ -17,6 +17,14 @@ class CategoryController {
         }
     }
 
+    getCategoryByName = async (req, res, next) => {
+        try {
+            return res.status(201).json(await categoryService.getCategoryByName(req.params))
+        } catch (error){
+            next(error)
+        }
+    }
+
     addCategory = async (req, res, next) => {
         try {
             return res.status(201).json(await categoryService.addCategory(req.body))

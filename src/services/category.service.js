@@ -38,6 +38,26 @@ class CategoryService {
         }
     }
 
+    static getCategoryByName = async ({name}) => {
+        try {
+            const category = await categoryModel.findOne({name})
+
+            if (!category) {
+                return {
+                    success: false,
+                    message: "wrong category"
+                }
+            }
+
+            return getData({ fields: ['_id', 'name'], object: category })
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
     static addCategory = async ({ name }) => {
         try {
             const category = await categoryModel.findOne({ name: name })

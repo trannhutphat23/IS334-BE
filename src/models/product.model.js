@@ -37,10 +37,11 @@ const productSchema = new Schema(
             trim: true,
             max: 1000,
         },
-        category: {
-            type: String,
-            enum: ["hot coffee", "ice coffee", "hot tea", "ice tea", "snack"],
+        categoryId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Category',
             required: true,
+
         },
         // by %
         discount: {

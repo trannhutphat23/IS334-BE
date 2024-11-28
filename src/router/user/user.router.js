@@ -13,6 +13,7 @@ const OrderController = require('../../controllers/order.controller')
 const CartController = require('../../controllers/cart.controller')
 const AccessController = require('../../controllers/access.controller')
 const AuthController = require('../../controllers/auth.controller')
+const CategoryController = require('../../controllers/category.controller')
 
 // get verification code
 router.post('/verification', AccessController.getVerificationCode)
@@ -76,5 +77,12 @@ router.delete('/carts/clearCartByUserId/:userId', CartController.clearCartByUser
 //admin
 router.get('/users', AccessController.getUsers)
 router.get('/users/:id', AccessController.getUserById)
+
+//category
+router.get('/categories', CategoryController.getAllCategory)
+router.get('/categories/:id', CategoryController.getCategoryById)
+router.post('/categories', CategoryController.addCategory)
+router.put('/categories/:id', CategoryController.updateCategory)
+router.delete('/categories/:id', CategoryController.deleteCategory)
 
 module.exports = router

@@ -1,17 +1,27 @@
 const productModel = require('../models/product.model')
+const categoryModel = require('../models/category.model')
 const uploadImage = require('../utils/uploadImage.utils')
 const deleteImage = require('../utils/deleteImage.utils');
 const cartModel = require('../models/cart.model');
 const { BadRequestError, InternalServerError } = require('../utils/error.response');
 
 class ProductService {
-    static addProduct = async (file, { name, type, description, category, discount }) => {
+    static addProduct = async (file, { name, type, description, categoryId, discount }) => {
         try {
             const product = await productModel.findOne({ name }).lean();
+            const category = await categoryModel.findById(categoryId).lean();
+
             if (product) {
                 return {
                     success: false,
                     message: "Already exist"
+                }
+            }
+
+            if (!category) {
+                return {
+                    success: false,
+                    message: "wrong category"
                 }
             }
 
@@ -22,22 +32,22 @@ class ProductService {
                 const priceSizeM = type.find(ele => ele.size === "M")
                 const priceSizeS = type.find(ele => ele.size === "S")
 
-                if (priceSizeL&&priceSizeM&&priceSizeS&&priceSizeL.price !== undefined && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                if (priceSizeL && priceSizeM && priceSizeS && priceSizeL.price !== undefined && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeL.price >= priceSizeM.price && priceSizeM.price >= priceSizeS.price) {
                     } else {
                         return new BadRequestError("Incorrect condition L >= M >= S");
                     }
-                } else if (priceSizeL&&priceSizeM&&priceSizeL.price !== undefined && priceSizeM.price !== undefined) {
+                } else if (priceSizeL && priceSizeM && priceSizeL.price !== undefined && priceSizeM.price !== undefined) {
                     if (priceSizeL.price >= priceSizeM.price) {
                     } else {
                         return new BadRequestError("Incorrect condition L >= M");
                     }
-                } else if (priceSizeM&&priceSizeS&&priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                } else if (priceSizeM && priceSizeS && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeM.price >= priceSizeS.price) {
                     } else {
                         return new BadRequestError("Incorrect condition M >= S");
                     }
-                } else if (priceSizeS&&priceSizeL&&priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
+                } else if (priceSizeS && priceSizeL && priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeL.price >= priceSizeS.price) {
                     } else {
                         return new BadRequestError("Incorrect condition L >= S");
@@ -50,7 +60,7 @@ class ProductService {
 
             const newProduct = new productModel({
                 "image": imageLink,
-                name, type, description, category, discount
+                name, type, description, categoryId, discount
             })
 
             const savedProduct = await newProduct.save()
@@ -66,10 +76,10 @@ class ProductService {
 
     static getProduct = async () => {
         try {
-            const products = await productModel.find({})
+            const products = await productModel.find({}).populate('categoryId')
 
-            products.forEach(p=>{
-                console.log('{id: ObjectId("' + p.id+'"), type:[' + p.type+'],')
+            products.forEach(p => {
+                console.log('{id: ObjectId("' + p.id + '"), type:[' + p.type + '],')
             })
 
             return products
@@ -83,7 +93,7 @@ class ProductService {
 
     static getProductID = async ({ id }) => {
         try {
-            const product = await productModel.findById(id)
+            const product = await productModel.findById(id).populate('categoryId')
 
             if (!product) {
                 return {
@@ -101,14 +111,22 @@ class ProductService {
         }
     }
 
-    static updateProduct = async (id, file, { type, description, category, discount, isStock }) => {
+    static updateProduct = async (id, file, { type, description, categoryId, discount, isStock }) => {
         try {
             const product = await productModel.findById(id)
+            const category = await categoryModel.findById(categoryId).lean();
 
             if (!product) {
                 return {
                     success: false,
                     message: "wrong product"
+                }
+            }
+
+            if (!category) {
+                return {
+                    success: false,
+                    message: "wrong category"
                 }
             }
 
@@ -132,22 +150,22 @@ class ProductService {
                 const priceSizeM = type.find(ele => ele.size === "M")
                 const priceSizeS = type.find(ele => ele.size === "S")
 
-                if (priceSizeL&&priceSizeM&&priceSizeS&&priceSizeL.price !== undefined && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                if (priceSizeL && priceSizeM && priceSizeS && priceSizeL.price !== undefined && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeL.price >= priceSizeM.price && priceSizeM.price >= priceSizeS.price) {
                     } else {
                         return new BadRequestError("Incorrect condition L >= M >= S");
                     }
-                } else if (priceSizeL&&priceSizeM&&priceSizeL.price !== undefined && priceSizeM.price !== undefined) {
+                } else if (priceSizeL && priceSizeM && priceSizeL.price !== undefined && priceSizeM.price !== undefined) {
                     if (priceSizeL.price >= priceSizeM.price) {
                     } else {
                         return new BadRequestError("Incorrect condition L >= M");
                     }
-                } else if (priceSizeM&&priceSizeS&&priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
+                } else if (priceSizeM && priceSizeS && priceSizeM.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeM.price >= priceSizeS.price) {
                     } else {
                         return new BadRequestError("Incorrect condition M >= S");
                     }
-                } else if (priceSizeS&&priceSizeL&&priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
+                } else if (priceSizeS && priceSizeL && priceSizeL.price !== undefined && priceSizeS.price !== undefined) {
                     if (priceSizeL.price >= priceSizeS.price) {
                     } else {
                         return new BadRequestError("Incorrect condition L >= S");
@@ -160,8 +178,8 @@ class ProductService {
             if (description)
                 product.description = description
 
-            if (category)
-                product.category = category
+            if (categoryId)
+                product.categoryId = categoryId
 
             if (discount)
                 product.discount = discount

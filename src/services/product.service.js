@@ -269,7 +269,8 @@ class ProductService {
             const result = await productModel.aggregate([
                 {
                     $group: {
-                        _id: "$category",
+                        _id: "$categoryId",
+                        name: {$first: ""},
                         products: {
                             $push: {
                                 _id: "$_id",
@@ -287,6 +288,13 @@ class ProductService {
                     $sort: { _id: 1 },
                 },
             ])
+
+            for (const cateId of result) {
+                const category = await categoryModel.findById(cateId._id)
+                if (category) {
+                    cateId.name = category.name
+                }
+            }
 
             return result
         } catch (error) {

@@ -71,6 +71,7 @@ router.get('/carts', CartController.getCart)
 router.get('/carts/getCartByUserId/:userId', CartController.getCartByUserId)
 router.get('/carts/getCartById/:id', CartController.getCartById)
 router.put('/carts/updateQuantity', CartController.updateQuantity)
+router.put('/carts/updateQuantityNoLog', CartController.updateQuantityNoLog)
 router.delete('/carts/clearCartById/:id', CartController.clearCartById)
 router.delete('/carts/clearCartByUserId/:userId', CartController.clearCartByUserId)
 

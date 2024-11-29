@@ -73,6 +73,14 @@ class CartController {
         }
     }
 
+    updateQuantityNoLog = async (req, res, next) => {
+        try {
+            return res.status(201).json(await CartService.updateQuantityNoLog(req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+
     clearCartByUserId = async (req, res, next) => {
         try {
             return res.status(201).json(await CartService.clearCartByUserId(req.params))

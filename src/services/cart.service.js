@@ -456,6 +456,40 @@ class CartService {
         }
     }
 
+    static updateQuantityNoLog = async ({cartId, productIds, quantities }) => {
+        try {
+            const cart = await cartModel.findById(cartId)
+            if (!cart) {
+                return {
+                    success: false,
+                    message: "Cart not found"
+                }
+            }
+
+            productIds.forEach((productId, index) => {
+                const quantity = quantities[index]
+                const item = cart.items.find(item => item.product._id.toString() === productId)
+
+                if (item) {
+                    item.quantity = quantity
+                }
+            })
+
+            await cart.save()
+
+            return {
+                success: true,
+                message: "Cart updated successfully",
+                cart
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
     static clearCartByUserId = async ({ userId }) => {
         try {
             const cart = await cartModel.findOne({ userId: userId }).populate({

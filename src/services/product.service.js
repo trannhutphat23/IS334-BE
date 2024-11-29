@@ -111,10 +111,22 @@ class ProductService {
         }
     }
 
-    static updateProduct = async (id, file, { type, description, categoryId, discount, isStock }) => {
+    static updateProduct = async (id, file, { name, type, description, categoryId, discount, isStock }) => {
         try {
             const product = await productModel.findById(id)
             const category = await categoryModel.findById(categoryId).lean();
+
+            if (name) {
+                const existProduct = await productModel.findOne({ name: name })
+                if (existProduct) {
+                    if (existProduct.id.toString() != id) {
+                        return {
+                            success: false,
+                            message: "name exist"
+                        }
+                    }
+                }
+            }
 
             if (!product) {
                 return {
@@ -175,6 +187,9 @@ class ProductService {
                 product.type = type
             }
 
+            if (name)
+                product.name = name
+
             if (description)
                 product.description = description
 
@@ -220,7 +235,7 @@ class ProductService {
         }
     }
 
-    static updateProductNameById = async (id, {name}) => {
+    static updateProductNameById = async (id, { name }) => {
         try {
             const product = await productModel.findById(id)
 
@@ -231,7 +246,7 @@ class ProductService {
                 }
             }
 
-            if (name.trim().length === 0){
+            if (name.trim().length === 0) {
                 return {
                     success: false,
                     message: "Invalid product name"
@@ -304,7 +319,7 @@ class ProductService {
                 {
                     $group: {
                         _id: "$categoryId",
-                        name: {$first: ""},
+                        name: { $first: "" },
                         products: {
                             $push: {
                                 _id: "$_id",

@@ -34,6 +34,14 @@ class ProductController {
         }
     }
 
+    updateProductNameById = async (req, res, next) => {
+        try {
+            return res.status(201).json(await ProductService.updateProductNameById(req.params.id, req.body))
+        } catch (error) {
+            next(error)
+        }
+    }
+
     deleteProduct = async (req, res, next) => {
         try {
             return res.status(201).json(await ProductService.deleteProduct(req.params))

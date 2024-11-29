@@ -36,6 +36,7 @@ router.get('/products/categories', ProductController.listCategoryOfProduct)
 router.get('/products/:id', ProductController.getProductID)
 router.post('/products', upload.single('image'), ProductController.addProduct)
 router.put('/products/:id', upload.single('image'), ProductController.updateProduct)
+router.put('/products/name/:id', ProductController.updateProductNameById)
 router.delete('/products/:id', ProductController.deleteProduct)
 
 //vouchers

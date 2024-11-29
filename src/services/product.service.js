@@ -220,6 +220,40 @@ class ProductService {
         }
     }
 
+    static updateProductNameById = async (id, {name}) => {
+        try {
+            const product = await productModel.findById(id)
+
+            if (!product) {
+                return {
+                    success: false,
+                    message: "wrong product"
+                }
+            }
+
+            if (name.trim().length === 0){
+                return {
+                    success: false,
+                    message: "Invalid product name"
+                }
+            }
+
+            product.name = name
+
+            const savedProduct = await product.save()
+
+            return {
+                success: true,
+                product: savedProduct
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message
+            }
+        }
+    }
+
     static deleteProduct = async ({ id }) => {
         try {
             const product = await productModel.findByIdAndDelete(id)

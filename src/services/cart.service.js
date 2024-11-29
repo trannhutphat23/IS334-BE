@@ -421,8 +421,9 @@ class CartService {
         }
     }
 
-    static updateQuantity = async ({ userId, productIds, quantities }) => {
+    static updateQuantity = async ({ userId, productIds, quantities, notes }) => {
         try {
+            console.log(quantities)
             const cart = await cartModel.findOne({ userId: { _id: userId } })
 
             if (!cart) {
@@ -434,10 +435,13 @@ class CartService {
 
             productIds.forEach((productId, index) => {
                 const quantity = quantities[index]
+                const note = notes[index]
+                console.log(quantity + " " + note)
                 const item = cart.items.find(item => item.product._id.toString() === productId)
 
                 if (item) {
                     item.quantity = quantity
+                    item.note = note
                 }
             })
 
@@ -456,7 +460,7 @@ class CartService {
         }
     }
 
-    static updateQuantityNoLog = async ({cartId, productIds, quantities }) => {
+    static updateQuantityNoLog = async ({cartId, productIds, quantities, notes }) => {
         try {
             const cart = await cartModel.findById(cartId)
             if (!cart) {
@@ -468,10 +472,12 @@ class CartService {
 
             productIds.forEach((productId, index) => {
                 const quantity = quantities[index]
+                const note = notes[index]
                 const item = cart.items.find(item => item.product._id.toString() === productId)
 
                 if (item) {
                     item.quantity = quantity
+                    item.note = note
                 }
             })
 

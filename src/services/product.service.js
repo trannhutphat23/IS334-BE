@@ -6,9 +6,9 @@ const cartModel = require('../models/cart.model');
 const { BadRequestError, InternalServerError } = require('../utils/error.response');
 
 class ProductService {
-    static getNameProductById = async ({ id }) => {
+    static getIdProductByName = async ({ name }) => {
         try {
-            const product = await productModel.findById(id).populate('categoryId')
+            const product = await productModel.findOne({name}).populate('categoryId')
 
             if (!product) {
                 return {
@@ -17,7 +17,7 @@ class ProductService {
                 }
             }
 
-            return product.name
+            return product.id
         } catch (error) {
             return {
                 success: false,

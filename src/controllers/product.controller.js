@@ -58,9 +58,9 @@ class ProductController {
         }
     }
 
-    getNameProductById = async (req, res, next) => {
+    getIdProductByName = async (req, res, next) => {
         try {
-            return res.status(201).json(await ProductService.getNameProductById(req.params))
+            return res.status(201).json(await ProductService.getIdProductByName(req.body))
         } catch (error) {
             next(error)
         }

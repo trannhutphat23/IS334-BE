@@ -38,7 +38,7 @@ router.post('/products', upload.single('image'), ProductController.addProduct)
 router.put('/products/:id', upload.single('image'), ProductController.updateProduct)
 router.put('/products/name/:id', ProductController.updateProductNameById)
 router.delete('/products/:id', ProductController.deleteProduct)
-router.get('/getNameProductById/:id', ProductController.getNameProductById)
+router.post('/getIdProductByName', ProductController.getIdProductByName)
 
 //vouchers
 router.post('/vouchers', VouchersController.addVoucher)

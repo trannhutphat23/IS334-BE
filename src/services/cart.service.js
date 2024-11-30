@@ -121,7 +121,9 @@ class CartService {
 
             cart = await cartModel.findOne({ userId: userId })
 
-            if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+            console.log(productId, size)
+
+            if (cart.items.some((item) => item.product == productId && item.size == size)) {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {
                         item.quantity += quantity
@@ -196,7 +198,7 @@ class CartService {
             const cart = await cartModel.findOne({ userId: userId })
 
             if (quantity) {
-                if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                if (cart.items.some((item) => item.product == productId && item.size == size)) {
                     cart.items.forEach(item => {
                         if (item.product == productId && item.size == size) {
                             if (item.quantity > quantity) {
@@ -218,7 +220,7 @@ class CartService {
                 }
             }
             else {
-                if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                if (cart.items.some((item) => item.product == productId && item.size == size)) {
                     cart.items.forEach((item, index) => {
                         if (item.product == productId && item.size == size) {
                             cart.items.splice(index, 1)
@@ -273,7 +275,7 @@ class CartService {
                 }
             }
 
-            if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+            if (cart.items.some((item) => item.product == productId && item.size == size)) {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {
                         item.quantity += quantity
@@ -345,7 +347,7 @@ class CartService {
             }
 
             if (quantity) {
-                if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                if (cart.items.some((item) => item.product == productId && item.size == size)) {
                     cart.items.forEach(item => {
                         if (item.product == productId && item.size == size) {
                             if (item.quantity > quantity) {
@@ -366,7 +368,7 @@ class CartService {
                 }
             }
             else {
-                if (cart.items.some((item) => item.product == productId) && cart.items.some((item) => item.size == size)) {
+                if (cart.items.some((item) => item.product == productId && item.size == size)) {
                     cart.items.forEach((item, index) => {
                         if (item.product == productId && item.size == size) {
                             cart.items.splice(index, 1)
@@ -460,7 +462,7 @@ class CartService {
         }
     }
 
-    static updateQuantityNoLog = async ({cartId, productIds, quantities, notes }) => {
+    static updateQuantityNoLog = async ({ cartId, productIds, quantities, notes }) => {
         try {
             const cart = await cartModel.findById(cartId)
             if (!cart) {

@@ -121,8 +121,6 @@ class CartService {
 
             cart = await cartModel.findOne({ userId: userId })
 
-            console.log(productId, size)
-
             if (cart.items.some((item) => item.product == productId && item.size == size)) {
                 cart.items.forEach(item => {
                     if (item.product == productId && item.size == size) {

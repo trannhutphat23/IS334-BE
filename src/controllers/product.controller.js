@@ -57,6 +57,14 @@ class ProductController {
             next(error)
         }
     }
+
+    getNameProductById = async (req, res, next) => {
+        try {
+            return res.status(201).json(await ProductService.getNameProductById(req.params))
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 module.exports = new ProductController()

@@ -7,7 +7,7 @@ const getData = require('../utils/formatRes');
 const AuthService = require('./auth.service');
 const userModel = require('../models/user.model');
 const ordersModel = require('../models/order.model');
-const {InternalServerError, BadRequestError, ConflictRequestError} = require('../utils/error.response')
+const { InternalServerError, BadRequestError, ConflictRequestError } = require('../utils/error.response')
 const isInvalidEmail = require('../utils/checkValidEmail')
 
 const MIN_PASSWORD_LENGTH = 6
@@ -18,22 +18,22 @@ const generateVerificationCode = () => {
 
 class AccessService {
     // [POST]/v1/api/signup
-    static signup = async({name, email, address, phone, password}) => {
-       try {
+    static signup = async ({ name, email, address, phone, password }) => {
+        try {
             // check invalid/disposable email
             const checkEmail = await isInvalidEmail(email)
             if (checkEmail) {
                 return new BadRequestError('Disposable or Invalid email is not allowed')
             }
-            
+
             // check duplicate email
-            const existEmail = await userModel.findOne({email: email}).lean()
+            const existEmail = await userModel.findOne({ email: email }).lean()
             if (existEmail) {
                 return new ConflictRequestError('Email already exists')
             }
 
             // check duplicate phone
-            const existPhone = await userModel.findOne({phone: phone}).lean()
+            const existPhone = await userModel.findOne({ phone: phone }).lean()
             if (existPhone) {
                 return new ConflictRequestError('Phone already exists')
             }
@@ -53,7 +53,7 @@ class AccessService {
                 "password": passwordHash,
             })
 
-            const payload = {id: newUser._id, email, phone};
+            const payload = { id: newUser._id, email, phone };
 
             const accessToken = AuthService.createAccessToken(payload);
 
@@ -65,7 +65,7 @@ class AccessService {
                         pass: "eewp zlsq mzed woej"
                     }
                 })
-    
+
                 var mailoptions = {
                     from: "trannhutphattv@gmail.com",
                     to: newUser.email,
@@ -93,8 +93,8 @@ class AccessService {
                         </div>
                     `
                 }
-    
-                transporter.sendMail(mailoptions, function(error, info){
+
+                transporter.sendMail(mailoptions, function (error, info) {
                     if (error) {
                         console.log(error);
                     } else {
@@ -104,10 +104,10 @@ class AccessService {
             }
             return {
                 success: true,
-                user: getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: newUser}),
+                user: getData({ fields: ['_id', 'name', 'email', 'address', 'phone'], object: newUser }),
                 accessToken: accessToken
             }
-       } catch (error) {
+        } catch (error) {
             // Validation Error
             if (error.name === 'ValidationError') {
                 const errors = Object.values(error.errors).map(key => ({
@@ -122,12 +122,12 @@ class AccessService {
             }
             // Internal Server Error
             return new InternalServerError(error.message)
-       }
+        }
     }
     // [POST]/v1/api/login
-    static login = async({email, password}, res) => {
+    static login = async ({ email, password }, res) => {
         try {
-            const existUser = await userModel.findOne({email})
+            const existUser = await userModel.findOne({ email })
             if (!existUser) {
                 return {
                     success: false,
@@ -135,14 +135,14 @@ class AccessService {
                 }
             }
             const match = await bcrypt.compare(password, existUser.password);
-            if (!match) {   
+            if (!match) {
                 return {
                     success: false,
                     message: 'Wrong Password'
                 }
             }
 
-            const payload = {id: existUser.id, email};
+            const payload = { id: existUser.id, email };
 
             const accessToken = AuthService.createAccessToken(payload);
 
@@ -158,7 +158,7 @@ class AccessService {
 
             return {
                 success: true,
-                user: getData({fields: ['_id','email', 'phone', 'address', 'name', 'birthday'], object: existUser}),
+                user: getData({ fields: ['_id', 'email', 'phone', 'address', 'name', 'birthday'], object: existUser }),
                 accessToken: accessToken,
             }
         } catch (error) {
@@ -169,10 +169,10 @@ class AccessService {
         }
     }
 
-    static getVerificationCode = async ({email}) => {
+    static getVerificationCode = async ({ email }) => {
         try {
-            const existUser = await CustomerModel.findOne({email: email})
-            if (!existUser){
+            const existUser = await CustomerModel.findOne({ email: email })
+            if (!existUser) {
                 return {
                     success: false,
                     message: "User don't exist"
@@ -189,7 +189,7 @@ class AccessService {
                         pass: "gltq larm zfkq acgt"
                     }
                 })
-    
+
                 var mailoptions = {
                     from: "trannhutphattv@gmail.com",
                     to: existUser.email,
@@ -214,14 +214,14 @@ class AccessService {
                         </div>
                     `
                 }
-    
-                transporter.sendMail(mailoptions, function(error, info){
+
+                transporter.sendMail(mailoptions, function (error, info) {
                     if (error) {
                         console.log(error);
                     } else {
                         console.log('Email sent: ' + info.response);
                     }
-                }); 
+                });
 
                 const currentDate = new Date();
                 const expireDate = new Date(currentDate.getTime() + (24 * 60 * 60 * 1000))
@@ -244,9 +244,9 @@ class AccessService {
         }
     }
 
-    static checkVerification = async ({email, code}) => {
+    static checkVerification = async ({ email, code }) => {
         try {
-            const existEmail = await CustomerModel.findOne({email: email})
+            const existEmail = await CustomerModel.findOne({ email: email })
             if (!existEmail) {
                 return {
                     success: false,
@@ -254,18 +254,18 @@ class AccessService {
                 }
             }
 
-            const existForgetPassword = await ForgetModel.find({user: existEmail._id})
-            if (!existForgetPassword){
+            const existForgetPassword = await ForgetModel.find({ user: existEmail._id })
+            if (!existForgetPassword) {
                 return {
                     success: false,
                     message: "Verification don't get in email"
                 }
             }
             const currentDate = new Date();
-            const validObjects = existForgetPassword.filter(ele => 
+            const validObjects = existForgetPassword.filter(ele =>
                 new Date(ele.expiredDate) > currentDate && ele.verificationCode === code
             );
-            if (validObjects.length === 0){
+            if (validObjects.length === 0) {
                 return {
                     success: false,
                     message: "Verification code is not valid"
@@ -285,9 +285,9 @@ class AccessService {
         }
     }
 
-    static changePassword = async({email, newPassword}) => {
+    static changePassword = async ({ email, newPassword }) => {
         try {
-            const existEmail = await CustomerModel.findOne({email: email})
+            const existEmail = await CustomerModel.findOne({ email: email })
             if (!existEmail) {
                 return {
                     success: false,
@@ -298,8 +298,8 @@ class AccessService {
             const salt = await bcrypt.genSalt()
             const newPasswordHash = await bcrypt.hash(newPassword, salt)
 
-            const updateUser = await CustomerModel.findByIdAndUpdate({_id: existEmail._id}, {password: newPasswordHash}, {new: true})
-            
+            const updateUser = await CustomerModel.findByIdAndUpdate({ _id: existEmail._id }, { password: newPasswordHash }, { new: true })
+
             if (updateUser) {
                 return {
                     success: true,
@@ -320,9 +320,9 @@ class AccessService {
         }
     }
 
-    static updateInfo = async ({name, phone, email, birthday}, {userId}) => {
+    static updateInfo = async ({ name, phone, email, address }, { userId }) => {
         try {
-            const existUser = await CustomerModel.findById(userId)
+            const existUser = await userModel.findById(userId)
             if (!existUser) {
                 return {
                     success: false,
@@ -330,12 +330,29 @@ class AccessService {
                 }
             }
 
-            return await CustomerModel.findByIdAndUpdate({_id: userId}, {
-                name: name, 
-                phone: phone, 
-                email: email, 
-                birthday: birthday
-            }, {new: true})
+            if (name) {
+                existUser.name = name
+            }
+
+            if (phone) {
+                existUser.phone = phone
+            }
+
+            if (email) {
+                existUser.email = email
+            }
+
+            if (address) {
+                existUser.address = address
+            }
+
+            await existUser.save()
+
+            return {
+                success: true,
+                user: getData({ fields: ['_id', 'email', 'phone', 'address', 'name'], object: existUser })
+
+            }
         } catch (error) {
             return {
                 success: false,
@@ -345,11 +362,11 @@ class AccessService {
     }
 
     // [POST]v1/api/logout
-    static logout = async(req, res) => {
+    static logout = async (req, res) => {
         const ck = req.cookies.refreshToken
         if (!ck) {
             return {
-                message: 'You are not logged in'   
+                message: 'You are not logged in'
             }
         }
         res.clearCookie('refreshToken')
@@ -358,7 +375,7 @@ class AccessService {
         }
     }
 
-    static contact = async ({name, email, phone, address, text}) => {
+    static contact = async ({ name, email, phone, address, text }) => {
         try {
             if (email) {
                 var transporter = nodemailer.createTransport({
@@ -368,7 +385,7 @@ class AccessService {
                         pass: "gltq larm zfkq acgt"
                     }
                 })
-    
+
                 var mailoptions = {
                     from: "trannhutphattv@gmail.com",
                     to: email,
@@ -393,20 +410,20 @@ class AccessService {
                         </div>
                     `
                 }
-    
-                transporter.sendMail(mailoptions, function(error, info){
+
+                transporter.sendMail(mailoptions, function (error, info) {
                     if (error) {
                         console.log(error);
                     } else {
                         console.log('Email sent: ' + info.response);
                     }
-                }); 
+                });
 
                 return {
                     sucess: true,
                     message: "Send email successfully"
                 }
-            }else{
+            } else {
                 return {
                     sucess: false,
                     message: "Send email failed"
@@ -423,17 +440,17 @@ class AccessService {
     static getUsers = async () => {
         try {
             const users = await userModel.find().lean()
-            
+
             return users
         } catch (error) {
             return new InternalServerError(error.message)
         }
     }
 
-    static getUserById = async ({id}) => {
+    static getUserById = async ({ id }) => {
         try {
             const user = await userModel.findById(id)
-            
+
             return user
         } catch (error) {
             return new InternalServerError(error.message)

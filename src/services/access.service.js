@@ -320,13 +320,37 @@ class AccessService {
         }
     }
 
-    static updateInfo = async ({ name, phone, email, address }, { userId }) => {
+    static updateInfo = async ({ oldPassword, newPassword, name, phone, email, address }, { userId }) => {
         try {
             const existUser = await userModel.findById(userId)
             if (!existUser) {
                 return {
                     success: false,
                     message: "User don't exist"
+                }
+            }
+
+            const emailExist = await userModel.findOne({ email: email })
+
+            if (emailExist && existUser.email != email) {
+                return {
+                    success: false,
+                    message: "email exists"
+                }
+            }
+
+            const check = await bcrypt.compare(oldPassword, existUser.password)
+
+            if (oldPassword && newPassword) {
+                if (!check) {
+                    return {
+                        success: false,
+                        message: "wrong old password"
+                    }
+                }
+                else {
+                    const hash = bcrypt.hashSync(newPassword, 10)
+                    existUser.password = hash
                 }
             }
 

@@ -191,6 +191,8 @@ class OrdersServices {
                     else {
                         if (deliveryStatus == 'success') {
                             order.paymentStatus = 'paid'
+
+                            await order.save()
                         }
                     }
                 }
@@ -264,6 +266,8 @@ class OrdersServices {
                 else {
                     if (deliveryStatus == 'success') {
                         existOrder.paymentStatus = 'paid'
+
+                        await existOrder.save()
                     }
                 }
             }

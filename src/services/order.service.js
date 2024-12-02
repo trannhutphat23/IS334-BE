@@ -365,14 +365,14 @@ class OrdersServices {
 
     static getOrdersByUserId = async ({ userId }) => {
         try {
-            const existUser = await CustomerModel.findById(userId)
+            const existUser = await userModel.findById(userId)
             if (!existUser) {
                 return {
                     success: false,
-                    message: "Customer don't exist"
+                    message: "user don't exist"
                 }
             }
-            return await Orders.find({ user: userId }).populate('items.item')
+            return await Orders.find({ user: userId }).populate("voucher").populate('items.product')
         } catch (error) {
             return {
                 success: false,
